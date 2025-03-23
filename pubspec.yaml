@@ -1,5 +1,5 @@
 name: mcp_dart
-description: A starting point for Dart libraries or applications.
+description: MCP SDK for Dart
 version: 0.0.1
 repository: https://github.com/leehack/mcp_dart
 
