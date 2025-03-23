@@ -1,6 +1,6 @@
 name: mcp_dart
 description: MCP SDK for Dart
-version: 0.0.1
+version: 0.0.2
 repository: https://github.com/leehack/mcp_dart
 
 environment:
