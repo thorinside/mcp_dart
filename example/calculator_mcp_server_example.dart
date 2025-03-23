@@ -1,9 +1,4 @@
-import 'package:mcp_dart/src/server/server.dart';
-import 'package:mcp_dart/src/server/tool_runner.dart';
-import 'package:mcp_dart/src/transport/stdio.dart';
-import 'package:mcp_dart/src/types/content.dart';
-import 'package:mcp_dart/src/types/server_result.dart';
-import 'package:mcp_dart/src/types/tool.dart';
+import 'package:mcp_dart/mcp_dart.dart';
 
 void main() async {
   final transport = StdioTransport();
