@@ -22,7 +22,10 @@ class StdioTransport implements Transport {
   /// When connecting to a Process, pass process.stdin as customStdin and process.stdout as customStdout.
   StdioTransport({IOSink? customStdin, Stream<List<int>>? customStdout})
     : _customStdin = customStdin,
-      _customStdout = customStdout {
+      _customStdout = customStdout;
+
+  @override
+  void start() {
     final input = _customStdout ?? stdin;
     _stdinSubscription = input
         .transform(utf8.decoder)

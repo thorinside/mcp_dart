@@ -29,7 +29,7 @@ class MCPServer {
     : _serverInfo = Implementation(name: name, version: version);
 
   /// Start the server using the provided transport
-  Future<void> start(Transport transport) async {
+  void start(Transport transport) {
     log("Starting MCP server...");
     _transport = transport;
     // Listen for incoming messages from the transport
@@ -56,6 +56,7 @@ class MCPServer {
         log("Transport connection closed");
       },
     );
+    _transport?.start();
   }
 
   /// Stop the server and clean up resources

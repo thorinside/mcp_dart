@@ -31,6 +31,9 @@ class TestTransport implements Transport {
     await _incomingController.close();
     await _outgoingController.close();
   }
+
+  @override
+  void start() {}
 }
 
 void main() {
@@ -61,7 +64,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start(transport));
+      server.start(transport);
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -79,7 +82,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start(transport));
+      server.start(transport);
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -98,7 +101,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start(transport));
+      server.start(transport);
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -117,7 +120,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start(transport));
+      server.start(transport);
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -136,7 +139,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start(transport));
+      server.start(transport);
       transport.simulateIncomingMessage(requestJson);
 
       // Assert

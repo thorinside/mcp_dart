@@ -14,9 +14,8 @@ void main(List<String> arguments) {
       if (req.headers['accept'] == 'text/event-stream' &&
           req.method == 'GET' &&
           req.url.path == 'sse') {
-        transport = SseTransport('/messages');
+        transport = SseTransport('/messages', req);
         server.start(transport!);
-        transport?.connect(req);
       }
       if (req.method == 'POST' && req.url.path == 'messages') {
         req.readAsString().then((message) {

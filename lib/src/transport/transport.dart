@@ -8,6 +8,9 @@ abstract class Transport {
   /// Send a message through the transport.
   Future<void> send(String message);
 
+  /// Start the transport.
+  void start();
+
   /// Close the transport.
   Future<void> close();
 }
