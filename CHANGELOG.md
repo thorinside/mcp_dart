@@ -1,3 +1,7 @@
+## 0.1.0
+
+- Add SSE support
+
 ## 0.0.2
 
 - Expose more types

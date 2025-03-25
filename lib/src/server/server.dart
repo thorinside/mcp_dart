@@ -13,8 +13,8 @@ import 'package:mcp_dart/src/types/server_result.dart';
 
 class MCPServer {
   // Transport layer
-  final Transport _transport;
-  late final StreamSubscription<String> _transportSubscription;
+  Transport? _transport;
+  StreamSubscription<String>? _transportSubscription;
 
   // State
   final _tools = <String, ToolRunner>{};
@@ -25,23 +25,20 @@ class MCPServer {
   // Server info
   final Implementation _serverInfo;
 
-  MCPServer(
-    this._transport, {
-    String name = 'mcp-dart-server',
-    String version = '0.0.1',
-  }) : _serverInfo = Implementation(name: name, version: version);
+  MCPServer({String name = 'mcp-dart-server', String version = '0.0.1'})
+    : _serverInfo = Implementation(name: name, version: version);
 
   /// Start the server using the provided transport
-  Future<void> start() async {
+  Future<void> start(Transport transport) async {
     log("Starting MCP server...");
-
+    _transport = transport;
     // Listen for incoming messages from the transport
-    _transportSubscription = _transport.incoming.listen(
+    _transportSubscription = _transport!.incoming.listen(
       (String message) async {
         try {
           await _handleMessage(JsonRpcRequest.fromJson(jsonDecode(message)));
         } catch (e) {
-          await _transport.send(
+          await _transport!.send(
             jsonEncode(
               JsonRpcError(
                 id: null,
@@ -63,14 +60,14 @@ class MCPServer {
 
   /// Stop the server and clean up resources
   Future<void> stop() async {
-    await _transportSubscription.cancel();
-    await _transport.close();
+    await _transportSubscription?.cancel();
+    await _transport?.close();
   }
 
   /// Handle an incoming message
   Future<void> _handleMessage(JsonRpcRequest message) async {
     if (message.jsonrpc != jsonRpcVersion) {
-      await _transport.send(
+      await _transport?.send(
         jsonEncode(
           JsonRpcError(
             id: message.id,
@@ -95,12 +92,12 @@ class MCPServer {
           await _handleInitialize(message.id, message.params!);
           break;
         case JsonRpcRequestMethod.ping:
-          await _transport.send(
+          await _transport?.send(
             jsonEncode(JsonRpcResponse(id: message.id, result: {}).toJson()),
           );
           break;
         case JsonRpcRequestMethod.toolsList:
-          await _transport.send(
+          await _transport?.send(
             jsonEncode(
               JsonRpcResponse(
                 id: message.id,
@@ -131,7 +128,7 @@ class MCPServer {
           await _handlePromptsGet(message.id, message.params!);
           break;
         default:
-          await _transport.send(
+          await _transport?.send(
             jsonEncode(
               JsonRpcError(
                 id: message.id,
@@ -142,7 +139,7 @@ class MCPServer {
           );
       }
     } catch (e) {
-      await _transport.send(
+      await _transport?.send(
         jsonEncode(
           JsonRpcError(
             id: message.id,
@@ -176,7 +173,7 @@ class MCPServer {
     final clientInfo = params['clientInfo'];
     log("Client initializing: ${clientInfo['name']} ${clientInfo['version']}");
 
-    await _transport.send(
+    await _transport?.send(
       jsonEncode(
         JsonRpcResponse(
           id: id,
@@ -209,14 +206,14 @@ class MCPServer {
     }
 
     final result = await tool.execute(args);
-    await _transport.send(
+    await _transport?.send(
       jsonEncode(JsonRpcResponse(id: id, result: result.toJson()).toJson()),
     );
   }
 
   /// Send a logging message
   Future<void> _sendLogMessage(String level, String message) async {
-    await _transport.send(
+    await _transport?.send(
       jsonEncode(
         JsonRpcNotification(
           method: 'notifications/message',
@@ -240,7 +237,7 @@ class MCPServer {
     dynamic id,
     Map<String, dynamic>? params,
   ) async {
-    await _transport.send(
+    await _transport?.send(
       jsonEncode(
         JsonRpcResponse(
           id: id,
@@ -274,7 +271,7 @@ class MCPServer {
 
       final messages = await _generatePromptMessages(name, args ?? {});
 
-      await _transport.send(
+      await _transport?.send(
         jsonEncode(
           JsonRpcResponse(
             id: id,
@@ -293,7 +290,7 @@ class MCPServer {
         code: JsonRpcErrorCode.invalidRequest,
         message: 'Error generating prompt: ${e.toString()}',
       );
-      await _transport.send(jsonEncode(errorResponse.toJson()));
+      await _transport?.send(jsonEncode(errorResponse.toJson()));
     }
   }
 
@@ -344,7 +341,7 @@ class MCPServer {
     dynamic id,
     Map<String, dynamic>? params,
   ) async {
-    await _transport.send(
+    await _transport?.send(
       jsonEncode(
         JsonRpcResponse(
           id: id,
@@ -365,7 +362,7 @@ class MCPServer {
     final String uri = params['uri'];
 
     try {
-      await _transport.send(
+      await _transport?.send(
         jsonEncode(
           JsonRpcResponse(
             id: id,
@@ -383,7 +380,7 @@ class MCPServer {
         code: JsonRpcErrorCode.invalidRequest,
         message: "Error reading resource: ${e.toString()}",
       );
-      await _transport.send(jsonEncode(errorResponse.toJson()));
+      await _transport?.send(jsonEncode(errorResponse.toJson()));
     }
   }
 
@@ -398,7 +395,7 @@ class MCPServer {
 
     _resourceSubscriptions.putIfAbsent(uri, () => {}).add(clientId);
 
-    await _transport.send(
+    await _transport?.send(
       jsonEncode(JsonRpcResponse(id: id, result: {}).toJson()),
     );
     await _sendLogMessage(
@@ -417,7 +414,7 @@ class MCPServer {
 
     _resourceSubscriptions[uri]?.remove(clientId);
 
-    await _transport.send(
+    await _transport?.send(
       jsonEncode(JsonRpcResponse(id: id, result: {}).toJson()),
     );
     await _sendLogMessage(

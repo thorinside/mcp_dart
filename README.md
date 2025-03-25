@@ -6,23 +6,20 @@ At the moment, it's very experimental and not ready for production use but if yo
 
 ## Features
 
-- Stdio based protocol
+- Stdio support
+- SSE support
 - Tools
 - Resources
 - Prompts
 
 ## Getting started
 
-The library only support stdio based protocol at the moment. The custom transport method can be implemented by extending `Transport`.
-
 Below code is the simplest way to start the MCP server.
 
 ```dart
 void main() async {
-  final transport = StdioTransport();
-  MCPServer server = MCPServer(transport, name: 'Calculator', version: '0.0.1');
-
-  server.tool(CalculatorTool()).start(); // Register the tool
+  MCPServer server = MCPServer(name: 'Calculator', version: '0.0.1');
+  server.tool(CalculatorTool()).start(StdioTransport());
 }
 ```
 

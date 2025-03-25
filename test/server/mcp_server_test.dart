@@ -40,7 +40,7 @@ void main() {
 
     setUp(() {
       transport = TestTransport();
-      server = MCPServer(transport);
+      server = MCPServer();
     });
 
     tearDown(() async {
@@ -61,7 +61,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start());
+      unawaited(server.start(transport));
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -79,7 +79,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start());
+      unawaited(server.start(transport));
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -98,7 +98,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start());
+      unawaited(server.start(transport));
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -117,7 +117,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start());
+      unawaited(server.start(transport));
       transport.simulateIncomingMessage(requestJson);
 
       // Assert
@@ -136,7 +136,7 @@ void main() {
       final requestJson = jsonEncode(request.toJson());
 
       // Act
-      unawaited(server.start());
+      unawaited(server.start(transport));
       transport.simulateIncomingMessage(requestJson);
 
       // Assert

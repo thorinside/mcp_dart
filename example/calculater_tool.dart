@@ -1,12 +1,5 @@
 import 'package:mcp_dart/mcp_dart.dart';
 
-void main() async {
-  final transport = StdioTransport();
-  MCPServer server = MCPServer(transport, name: 'Calculator', version: '0.0.1');
-
-  server.tool(CalculatorTool()).start();
-}
-
 class CalculatorTool extends ToolRunner {
   const CalculatorTool({
     super.inputSchema = const InputSchema(
