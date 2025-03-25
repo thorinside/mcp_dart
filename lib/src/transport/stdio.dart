@@ -21,23 +21,25 @@ class StdioTransport implements Transport {
   /// If [customStdin] and [customStdout] are not provided, uses the standard system streams.
   /// When connecting to a Process, pass process.stdin as customStdin and process.stdout as customStdout.
   StdioTransport({IOSink? customStdin, Stream<List<int>>? customStdout})
-      : _customStdin = customStdin,
-        _customStdout = customStdout {
+    : _customStdin = customStdin,
+      _customStdout = customStdout {
     final input = _customStdout ?? stdin;
-    _stdinSubscription =
-        input.transform(utf8.decoder).transform(const LineSplitter()).listen(
-      (String line) {
-        if (line.isNotEmpty) {
-          _incomingController.add(line);
-        }
-      },
-      onError: (error) {
-        _incomingController.addError(
-          TransportException('Error reading from stdin', error),
+    _stdinSubscription = input
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(
+          (String line) {
+            if (line.isNotEmpty) {
+              _incomingController.add(line);
+            }
+          },
+          onError: (error) {
+            _incomingController.addError(
+              TransportException('Error reading from stdin', error),
+            );
+          },
+          cancelOnError: true,
         );
-      },
-      cancelOnError: true,
-    );
   }
 
   @override

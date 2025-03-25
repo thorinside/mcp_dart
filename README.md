@@ -94,7 +94,7 @@ To configure it with the client (ex, Claude Desktop), you can use the below code
     },
     "calculator_aot": {
       "command": "path/to/compiled/calculator_mcp_server_example",
-    }
+    },
   }
 }
 ```
