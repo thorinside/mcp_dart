@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Make it no need to call trasnport.connect()
+
 ## 0.1.1
 
 - Add examples visible in pub.dev
