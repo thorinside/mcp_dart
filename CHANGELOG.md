@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Full refactor of the codebase to match it with the Typescript SDK implementation.
+
 ## 0.2.0
 
 - Make it no need to call trasnport.connect()
