@@ -1,19 +1,19 @@
 # MCP(Model Context Protocol) for Dart
 
-[Model Context Protocol](https://modelcontextprotocol.io/) (MCP) is an open protocol that enables seamless integration between LLM applications and external data sources and tools. The goal of this library is to provide a simple way to implement MCP server and client in Dart while implementing the [MCP protocol spec](https://spec.modelcontextprotocol.io/) in dart.
+[Model Context Protocol](https://modelcontextprotocol.io/) (MCP) is an open protocol designed to enable seamless integration between LLM applications and external data sources and tools.
 
-At the moment, it's very experimental and not ready for production use but if you want to implement a simple MCP server using Dart, you can use this library.
+This library aims to provide a simple and intuitive way to implement MCP servers and clients in Dart, while adhering to the [MCP protocol spec](https://spec.modelcontextprotocol.io/). The goal is to make this SDK as similar as possible to the official SDKs available in other languages, ensuring a consistent developer experience across platforms.
 
 ## Requirements
 
 - Dart SDK version ^3.7.2 or higher
 
-Ensure you have the correct Dart SDK version installed. See https://dart.dev/get-dart for installation instructions.
+Ensure you have the correct Dart SDK version installed. See <https://dart.dev/get-dart> for installation instructions.
 
 ## Features
 
-- Stdio support
-- SSE support
+- Stdio support (Server and Client)
+- SSE support (Server only for now)
 - Tools
 - Resources
 - Prompts
@@ -76,13 +76,13 @@ void main() async {
 Once you compile your MCP server, you can compile the client using the below code.
 
 ```bash
-dart compile exe example/calculator_mcp_server_example.dart -o ./calculator_mcp_server_example
+dart compile exe example/server_stdio.dart -o ./server_stdio
 ```
 
 Or just run it with JIT.
 
 ```bash
-dart run example/calculator_mcp_server_example.dart
+dart run example/server_stdio.dart
 ```
 
 To configure it with the client (ex, Claude Desktop), you can use the below code.
@@ -93,11 +93,11 @@ To configure it with the client (ex, Claude Desktop), you can use the below code
     "calculator_jit": {
       "command": "path/to/dart",
       "args": [
-        "/path/to/calculator_mcp_server_example.dart"
+        "/path/to/server_stdio.dart"
       ]
     },
     "calculator_aot": {
-      "command": "path/to/compiled/calculator_mcp_server_example",
+      "command": "path/to/compiled/server_stdio",
     },
   }
 }

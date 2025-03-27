@@ -25,11 +25,11 @@ typedef ToolCallback =
       RequestHandlerExtra? extra,
     });
 
-typedef PromptCallback<Args> =
-    FutureOr<GetPromptResult> Function(Args args, RequestHandlerExtra extra);
-
-typedef PromptCallbackNoArgs =
-    FutureOr<GetPromptResult> Function(RequestHandlerExtra extra);
+typedef PromptCallback =
+    FutureOr<GetPromptResult> Function(
+      Map<String, dynamic>? args,
+      RequestHandlerExtra? extra,
+    );
 
 class PromptArgumentDefinition {
   final String? description;
@@ -104,15 +104,13 @@ class _RegisteredTool {
 class _RegisteredPrompt<Args> {
   final String? description;
   final Map<String, PromptArgumentDefinition>? argsSchemaDefinition;
-  final PromptCallback<Args>? callbackWithArgs;
-  final PromptCallbackNoArgs? callbackNoArgs;
+  final PromptCallback? callback;
 
   const _RegisteredPrompt({
     this.description,
     this.argsSchemaDefinition,
-    this.callbackWithArgs,
-    this.callbackNoArgs,
-  }) : assert(callbackWithArgs != null || callbackNoArgs != null);
+    this.callback,
+  });
 
   Prompt toPrompt(String name) {
     final promptArgs =
@@ -477,15 +475,8 @@ class McpServer {
               registered.argsSchemaDefinition!,
             );
           }
-          if (registered.callbackWithArgs != null) {
-            return await Future.value(
-              registered.callbackWithArgs!(parsedArgs, extra),
-            );
-          } else if (registered.callbackNoArgs != null) {
-            if (args != null && args.isNotEmpty) {
-              print("Warning: Args provided for zero-arg prompt '$name'");
-            }
-            return await Future.value(registered.callbackNoArgs!(extra));
+          if (registered.callback != null) {
+            return await Future.value(registered.callback!(parsedArgs, extra));
           } else {
             throw StateError("No callback found");
           }
@@ -596,32 +587,20 @@ class McpServer {
   }
 
   /// Registers a prompt or prompt template.
-  void prompt<Args>(
+  void prompt(
     String name, {
     String? description,
     Map<String, PromptArgumentDefinition>? argsSchema,
-    PromptCallback<Args>? callbackWithArgs,
-    PromptCallbackNoArgs? callbackNoArgs,
+    PromptCallback? callback,
   }) {
     if (_registeredPrompts.containsKey(name)) {
       throw ArgumentError("Prompt name '$name' already registered.");
     }
-    if (callbackWithArgs == null && callbackNoArgs == null) {
-      throw ArgumentError(
-        "Must provide either 'callbackWithArgs' or 'callbackNoArgs' for prompt '$name'.",
-      );
-    }
-    if (callbackWithArgs != null && callbackNoArgs != null) {
-      throw ArgumentError(
-        "Cannot provide both 'callbackWithArgs' and 'callbackNoArgs' for prompt '$name'.",
-      );
-    }
 
-    _registeredPrompts[name] = _RegisteredPrompt<Args>(
+    _registeredPrompts[name] = _RegisteredPrompt(
       description: description,
-      argsSchemaDefinition: (callbackWithArgs != null) ? argsSchema : null,
-      callbackWithArgs: callbackWithArgs,
-      callbackNoArgs: callbackNoArgs,
+      argsSchemaDefinition: argsSchema,
+      callback: callback,
     );
     _ensurePromptHandlersInitialized();
   }

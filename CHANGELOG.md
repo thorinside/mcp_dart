@@ -1,3 +1,8 @@
+## 0.3.1
+
+- Add Client support (stdio)
+- Add resource and prompts example to stdio server and client
+  
 ## 0.3.0
 
 - Full refactor of the codebase to match it with the Typescript SDK implementation.

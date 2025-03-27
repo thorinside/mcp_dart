@@ -195,6 +195,7 @@ class Server extends Protocol {
     switch (method) {
       case "initialize":
       case "ping":
+      case "completion/complete":
         break;
 
       case "logging/setLevel":
@@ -207,7 +208,6 @@ class Server extends Protocol {
 
       case "prompts/get":
       case "prompts/list":
-      case "completion/complete":
         if (!(_capabilities.prompts != null)) {
           throw StateError(
             "Server setup error: Cannot handle '$method' without 'prompts' capability",
