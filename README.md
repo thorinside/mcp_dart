@@ -4,6 +4,12 @@
 
 At the moment, it's very experimental and not ready for production use but if you want to implement a simple MCP server using Dart, you can use this library.
 
+## Requirements
+
+- Dart SDK version ^3.7.2 or higher
+
+Ensure you have the correct Dart SDK version installed. See https://dart.dev/get-dart for installation instructions.
+
 ## Features
 
 - Stdio support
@@ -72,7 +78,7 @@ class CalculatorTool extends ToolRunner {
 Once you compile your MCP server, you can compile the client using the below code.
 
 ```bash
-dart dart compile exe example/calculator_mcp_server_example.dart -o ./calculator_mcp_server_example
+dart compile exe example/calculator_mcp_server_example.dart -o ./calculator_mcp_server_example
 ```
 
 Or just run it with JIT.
