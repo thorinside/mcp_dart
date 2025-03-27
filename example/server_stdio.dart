@@ -1,8 +1,3 @@
-# Examples
-
-## Stdio Server
-
-```dart
 import 'package:mcp_dart/mcp_dart.dart';
 
 void main() async {
@@ -49,4 +44,3 @@ void main() async {
 
   server.connect(StdioServerTransport());
 }
-```

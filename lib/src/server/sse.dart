@@ -1,0 +1,300 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
+
+import 'package:mcp_dart/src/shared/transport.dart';
+import 'package:mcp_dart/src/types.dart';
+
+/// Maximum size for incoming POST message bodies.
+const int _maximumMessageSize = 4 * 1024 * 1024; // 4MB in bytes
+
+/// Server transport for SSE: sends messages over a persistent SSE connection
+/// ([HttpResponse]) and receives messages from separate HTTP POST requests
+/// handled by [handlePostMessage].
+///
+/// This requires integration with a Dart HTTP server (like `dart:io`'s
+/// `HttpServer` or frameworks like Shelf/Alfred). The `start` method manages
+/// the SSE response stream, while `handlePostMessage` should be called from
+/// the server's routing logic for the designated message endpoint.
+class SseServerTransport implements Transport {
+  StringConversionSink? _sink;
+  final HttpResponse _sseResponse;
+
+  /// The unique session ID for this connection, used to route POST messages.
+  late final String _sessionId;
+
+  /// The relative or absolute path where the client should POST messages.
+  final String _messageEndpointPath;
+
+  /// Controller for managing the SSE connection stream closing.
+  final StreamController<void> _closeController = StreamController.broadcast();
+
+  /// Callback for when the connection is closed.
+  @override
+  void Function()? onclose;
+
+  /// Callback for reporting errors.
+  @override
+  void Function(Error error)? onerror;
+
+  /// Callback for received messages (from POST requests).
+  @override
+  void Function(JsonRpcMessage message)? onmessage;
+
+  /// Returns the unique session ID for this transport instance.
+  /// Used by the client in the POST request URL query parameters.
+  @override
+  String get sessionId => _sessionId;
+
+  /// Creates a new SSE server transport.
+  ///
+  /// - [response]: The [HttpResponse] object obtained from the HTTP server
+  ///   for the initial SSE connection request (e.g., GET /sse). This transport
+  ///   takes control of this response object.
+  /// - [messageEndpointPath]: The URL path (relative or absolute) that the client
+  ///   will be instructed to POST messages to.
+  SseServerTransport({
+    required HttpResponse response,
+    required String messageEndpointPath,
+  }) : _sseResponse = response,
+       _messageEndpointPath = messageEndpointPath {
+    _sessionId = _generateUUID();
+  }
+
+  /// Generates a UUID (version 4).
+  String _generateUUID() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (i) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
+
+  /// Handles the initial SSE connection setup.
+  ///
+  /// Configures the [HttpResponse] for SSE, sends the initial 'endpoint' event
+  /// instructing the client where to POST messages, and listens for the
+  /// connection to close.
+  @override
+  Future<void> start() async {
+    if (_closeController.isClosed) {
+      throw StateError(
+        "SseServerTransport cannot start: Transport is already closed.",
+      );
+    }
+
+    try {
+      final socket = await _sseResponse.detachSocket(writeHeaders: false);
+      _sink = utf8.encoder.startChunkedConversion(socket);
+      _sink!.add(
+        'HTTP/1.1 200 OK\r\n'
+        'Content-Type: text/event-stream\r\n'
+        'Cache-Control: no-cache\r\n'
+        'Connection: keep-alive\r\n'
+        '\r\n\r\n',
+      );
+      final endpointUrl =
+          '$_messageEndpointPath?sessionId=${Uri.encodeComponent(sessionId)}';
+      await _sendSseEvent(name: 'endpoint', data: endpointUrl);
+
+      socket.listen(
+        (_) {},
+        onDone: () {
+          print('Client disconnected');
+          close();
+        },
+        onError: (error) {
+          print('Socket error: $error');
+          onerror?.call(
+            error is Error ? error : StateError("Socket error: $error"),
+          );
+        },
+      );
+    } catch (error) {
+      print('Error starting SSE transport: $error');
+    }
+  }
+
+  /// Handles incoming HTTP POST requests containing client messages.
+  ///
+  /// Parses the request body as JSON, validates it, and invokes the [onmessage]
+  /// callback with the parsed message.
+  Future<void> handlePostMessage(
+    HttpRequest request, {
+    dynamic parsedBody,
+  }) async {
+    final response = request.response;
+
+    if (_closeController.isClosed) {
+      response.statusCode = HttpStatus.serviceUnavailable;
+      response.write("SSE connection not established or closed.");
+      await response.close();
+      onerror?.call(
+        StateError("Received POST message but SSE connection is not active."),
+      );
+      return;
+    }
+
+    if (request.method != 'POST') {
+      response.statusCode = HttpStatus.methodNotAllowed;
+      response.headers.set(HttpHeaders.allowHeader, 'POST');
+      response.write("Method Not Allowed. Use POST.");
+      await response.close();
+      return;
+    }
+
+    ContentType? contentType;
+    try {
+      contentType = request.headers.contentType ?? ContentType.json;
+    } catch (e) {
+      response.statusCode = HttpStatus.badRequest;
+      response.write("Invalid Content-Type header: $e");
+      await response.close();
+      onerror?.call(
+        ArgumentError("Invalid Content-Type header in POST request."),
+      );
+      return;
+    }
+
+    if (contentType.mimeType != 'application/json') {
+      response.statusCode = HttpStatus.unsupportedMediaType;
+      response.write(
+        "Unsupported Content-Type: ${request.headers.contentType?.mimeType}. Expected 'application/json'.",
+      );
+      await response.close();
+      onerror?.call(
+        ArgumentError(
+          "Unsupported Content-Type in POST request: ${request.headers.contentType?.mimeType}",
+        ),
+      );
+      return;
+    }
+
+    dynamic messageJson;
+    try {
+      if (parsedBody != null) {
+        messageJson = parsedBody;
+      } else {
+        final bodyBytes = await request
+            .fold<BytesBuilder>(BytesBuilder(), (builder, chunk) {
+              builder.add(chunk);
+              if (builder.length > _maximumMessageSize) {
+                throw HttpException(
+                  "Message size exceeds limit of $_maximumMessageSize bytes.",
+                );
+              }
+              return builder;
+            })
+            .then((builder) => builder.toBytes());
+
+        final encoding =
+            Encoding.getByName(contentType.parameters['charset']) ?? utf8;
+        final bodyString = encoding.decode(bodyBytes);
+        messageJson = jsonDecode(bodyString);
+      }
+
+      if (messageJson is! Map<String, dynamic>) {
+        throw FormatException(
+          "Invalid JSON message format: Expected a JSON object.",
+        );
+      }
+
+      await handleMessage(messageJson);
+
+      response.statusCode = HttpStatus.accepted;
+      response.write("Accepted");
+      await response.close();
+    } catch (error) {
+      onerror?.call(
+        error is Error
+            ? error
+            : StateError("Error handling POST message: $error"),
+      );
+      response.statusCode = HttpStatus.internalServerError;
+      response.write("Error processing message: $error");
+      await response.close();
+    }
+  }
+
+  /// Handles a message received via any means (typically from [handlePostMessage]).
+  /// Parses the raw JSON object and invokes the [onmessage] callback.
+  Future<void> handleMessage(Map<String, dynamic> messageJson) async {
+    JsonRpcMessage parsedMessage;
+    try {
+      parsedMessage = JsonRpcMessage.fromJson(messageJson);
+    } catch (error) {
+      print("Failed to parse JsonRpcMessage from JSON: $messageJson");
+      rethrow;
+    }
+
+    try {
+      onmessage?.call(parsedMessage);
+    } catch (e) {
+      print("Error within onmessage handler: $e");
+      onerror?.call(StateError("Error in onmessage handler: $e"));
+    }
+  }
+
+  /// Sends a [JsonRpcMessage] to the client over the established SSE connection.
+  ///
+  /// Serializes the message to JSON and formats it as an SSE 'message' event.
+  @override
+  Future<void> send(JsonRpcMessage message) async {
+    if (_closeController.isClosed) {
+      throw StateError("Cannot send message: SSE connection is not active.");
+    }
+
+    try {
+      final jsonString = jsonEncode(message.toJson());
+      await _sendSseEvent(name: 'message', data: jsonString);
+    } catch (error) {
+      onerror?.call(StateError("Failed to send message over SSE: $error"));
+      throw StateError("Failed to send message over SSE: $error");
+    }
+  }
+
+  /// Formats and sends a Server-Sent Event.
+  Future<void> _sendSseEvent({
+    required String name,
+    required String data,
+  }) async {
+    if (_closeController.isClosed) return;
+
+    final buffer = 'event: $name\ndata: $data\n\n';
+    _sink?.add(buffer);
+  }
+
+  /// Closes the SSE connection and cleans up resources.
+  /// Invokes the [onclose] callback.
+  @override
+  Future<void> close() async {
+    _handleClosure();
+  }
+
+  /// Internal cleanup logic for closing the connection.
+  void _handleClosure({bool propagateToCallback = true}) {
+    if (_closeController.isClosed) return;
+
+    _closeController.add(null);
+    _closeController.close();
+
+    try {
+      _sink?.close();
+    } catch (e) {
+      print("Error closing SSE response: $e");
+    }
+    _sink = null;
+
+    if (propagateToCallback) {
+      try {
+        onclose?.call();
+      } catch (e) {
+        print("Error within onclose handler: $e");
+        onerror?.call(StateError("Error in onclose handler: $e"));
+      }
+    }
+  }
+}

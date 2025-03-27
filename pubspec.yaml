@@ -6,9 +6,7 @@ repository: https://github.com/leehack/mcp_dart
 environment:
   sdk: ^3.7.2
 
-dependencies:
-  uuid: ^4.5.1
-  shelf: ^1.4.2
+# dependencies:
 
 dev_dependencies:
   lints: ^5.0.0

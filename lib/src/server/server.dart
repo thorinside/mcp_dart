@@ -1,472 +1,314 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:developer';
 
-import 'package:mcp_dart/src/server/tool_runner.dart';
-import 'package:mcp_dart/src/transport/transport.dart';
-import 'package:mcp_dart/src/types/content.dart';
-import 'package:mcp_dart/src/types/json_rpc_message.dart';
-import 'package:mcp_dart/src/types/prompt.dart';
-import 'package:mcp_dart/src/types/resource.dart';
-import 'package:mcp_dart/src/types/server_capabilities.dart';
-import 'package:mcp_dart/src/types/server_result.dart';
+import 'package:mcp_dart/src/shared/protocol.dart';
+import 'package:mcp_dart/src/types.dart';
 
-class MCPServer {
-  // Transport layer
-  Transport? _transport;
-  StreamSubscription<String>? _transportSubscription;
+/// Options for configuring the MCP [Server].
+class ServerOptions extends ProtocolOptions {
+  /// Capabilities to advertise as being supported by this server.
+  final ServerCapabilities? capabilities;
 
-  // State
-  final _tools = <String, ToolRunner>{};
-  final _resources = <String, Resource>{};
-  final _prompts = <String, Prompt>{};
-  final _resourceSubscriptions = <String, Set<String>>{};
+  /// Optional instructions describing how to use the server and its features.
+  final String? instructions;
 
-  // Server info
+  /// Creates server options.
+  const ServerOptions({
+    super.enforceStrictCapabilities,
+    this.capabilities,
+    this.instructions,
+  });
+}
+
+/// An MCP server implementation built on top of a pluggable [Transport].
+///
+/// This server automatically handles the initialization flow initiated by the client.
+/// It extends the base [Protocol] class, providing server-specific logic and
+/// capability handling.
+class Server extends Protocol {
+  ClientCapabilities? _clientCapabilities;
+  Implementation? _clientVersion;
+  ServerCapabilities _capabilities;
+  final String? _instructions;
   final Implementation _serverInfo;
 
-  MCPServer({String name = 'mcp-dart-server', String version = '0.0.1'})
-    : _serverInfo = Implementation(name: name, version: version);
+  /// Callback invoked when initialization has fully completed.
+  void Function()? oninitialized;
 
-  /// Start the server using the provided transport
-  void start(Transport transport) {
-    log("Starting MCP server...");
-    _transport = transport;
-    // Listen for incoming messages from the transport
-    _transportSubscription = _transport!.incoming.listen(
-      (String message) async {
-        try {
-          await _handleMessage(JsonRpcRequest.fromJson(jsonDecode(message)));
-        } catch (e) {
-          await _transport!.send(
-            jsonEncode(
-              JsonRpcError(
-                id: null,
-                code: JsonRpcErrorCode.parseError,
-                message: "Parse error: ${e.toString()}",
-              ).toJson(),
-            ),
-          );
-        }
-      },
-      onError: (error) {
-        log("Transport error: $error");
-      },
-      onDone: () {
-        log("Transport connection closed");
-      },
+  /// Initializes this server with its implementation details and options.
+  Server(this._serverInfo, {ServerOptions? options})
+    : _capabilities = options?.capabilities ?? const ServerCapabilities(),
+      _instructions = options?.instructions,
+      super(options) {
+    setRequestHandler<JsonRpcInitializeRequest>(
+      "initialize",
+      (request, extra) async => _oninitialize(request.initParams),
+      (id, params, meta) => JsonRpcInitializeRequest.fromJson({
+        'id': id,
+        'params': params,
+        if (meta != null) '_meta': meta,
+      }),
     );
-    _transport?.start();
+
+    setNotificationHandler<JsonRpcInitializedNotification>(
+      "notifications/initialized",
+      (notification) async => oninitialized?.call(),
+      (params, meta) => JsonRpcInitializedNotification.fromJson({
+        'params': params,
+        if (meta != null) '_meta': meta,
+      }),
+    );
   }
 
-  /// Stop the server and clean up resources
-  Future<void> stop() async {
-    await _transportSubscription?.cancel();
-    await _transport?.close();
-  }
-
-  /// Handle an incoming message
-  Future<void> _handleMessage(JsonRpcRequest message) async {
-    if (message.jsonrpc != jsonRpcVersion) {
-      await _transport?.send(
-        jsonEncode(
-          JsonRpcError(
-            id: message.id,
-            code: JsonRpcErrorCode.invalidRequest,
-            message: "Invalid Request: incorrect jsonrpc version",
-          ).toJson(),
-        ),
-      );
-      return;
-    }
-
-    // Handle notifications (messages without IDs)
-    if (message.id == null) {
-      await _handleNotification(message.method, message.params);
-      return;
-    }
-
-    // Handle requests (messages with IDs)
-    try {
-      switch (message.method) {
-        case JsonRpcRequestMethod.initialize:
-          await _handleInitialize(message.id, message.params!);
-          break;
-        case JsonRpcRequestMethod.ping:
-          await _transport?.send(
-            jsonEncode(JsonRpcResponse(id: message.id, result: {}).toJson()),
-          );
-          break;
-        case JsonRpcRequestMethod.toolsList:
-          await _transport?.send(
-            jsonEncode(
-              JsonRpcResponse(
-                id: message.id,
-                result: ListToolsResult(tools: _tools.values.toList()).toJson(),
-              ).toJson(),
-            ),
-          );
-          break;
-        case JsonRpcRequestMethod.toolsCall:
-          await _handleToolsCall(message.id, message.params!);
-          break;
-        case JsonRpcRequestMethod.resourcesList:
-          await _handleResourcesList(message.id, message.params);
-          break;
-        case JsonRpcRequestMethod.resourcesRead:
-          await _handleResourcesRead(message.id, message.params!);
-          break;
-        case JsonRpcRequestMethod.resourcesSubscribe:
-          await _handleResourcesSubscribe(message.id, message.params!);
-          break;
-        case JsonRpcRequestMethod.resourcesUnsubscribe:
-          await _handleResourcesUnsubscribe(message.id, message.params!);
-          break;
-        case JsonRpcRequestMethod.promptsList:
-          await _handlePromptsList(message.id, message.params);
-          break;
-        case JsonRpcRequestMethod.promptsGet:
-          await _handlePromptsGet(message.id, message.params!);
-          break;
-        default:
-          await _transport?.send(
-            jsonEncode(
-              JsonRpcError(
-                id: message.id,
-                code: JsonRpcErrorCode.methodNotFound,
-                message: "Method not found: ${message.method}",
-              ).toJson(),
-            ),
-          );
-      }
-    } catch (e) {
-      await _transport?.send(
-        jsonEncode(
-          JsonRpcError(
-            id: message.id,
-            code: JsonRpcErrorCode.internalError,
-            message: "Internal error: ${e.toString()}",
-          ).toJson(),
-        ),
+  /// Registers new capabilities for this server.
+  ///
+  /// This can only be called *before* connecting to a transport.
+  void registerCapabilities(ServerCapabilities capabilities) {
+    if (transport != null) {
+      throw StateError(
+        "Cannot register capabilities after connecting to transport",
       );
     }
+    _capabilities = ServerCapabilities.fromJson(
+      mergeCapabilities<Map<String, dynamic>>(
+        _capabilities.toJson(),
+        capabilities.toJson(),
+      ),
+    );
   }
 
-  /// Handle a notification message (no response expected)
-  Future<void> _handleNotification(
-    JsonRpcRequestMethod method,
-    Map<String, dynamic>? params,
-  ) async {
+  /// Handles the client's `initialize` request.
+  Future<InitializeResult> _oninitialize(InitializeRequestParams params) async {
+    final requestedVersion = params.protocolVersion;
+
+    _clientCapabilities = params.capabilities;
+    _clientVersion = params.clientInfo;
+
+    final protocolVersion =
+        supportedProtocolVersions.contains(requestedVersion)
+            ? requestedVersion
+            : latestProtocolVersion;
+
+    return InitializeResult(
+      protocolVersion: protocolVersion,
+      capabilities: getCapabilities(),
+      serverInfo: _serverInfo,
+      instructions: _instructions,
+    );
+  }
+
+  /// Gets the client's reported capabilities, available after initialization.
+  ClientCapabilities? getClientCapabilities() => _clientCapabilities;
+
+  /// Gets the client's reported implementation info, available after initialization.
+  Implementation? getClientVersion() => _clientVersion;
+
+  /// Gets the server's currently configured capabilities.
+  ServerCapabilities getCapabilities() => _capabilities;
+
+  @override
+  void assertCapabilityForMethod(String method) {
     switch (method) {
-      case JsonRpcRequestMethod.notificationsInitialized:
-        log("Client initialized");
-        break;
-      default:
-        log("Unhandled notification: $method");
-    }
-  }
-
-  /// Handle initialize request
-  Future<void> _handleInitialize(
-    dynamic id,
-    Map<String, dynamic> params,
-  ) async {
-    final clientInfo = params['clientInfo'];
-    log("Client initializing: ${clientInfo['name']} ${clientInfo['version']}");
-
-    await _transport?.send(
-      jsonEncode(
-        JsonRpcResponse(
-          id: id,
-          result:
-              InitializeResult(
-                protocolVersion: protocolVersion,
-                serverInfo: _serverInfo,
-                capabilities: ServerCapabilities(
-                  tools: Tools(listChanged: true),
-                  resources: Resources(subscribe: true, listChanged: true),
-                  prompts: Prompts(listChanged: true),
-                  logging: {},
-                ),
-                instructions: 'This server provides basic calculator tools.',
-              ).toJson(),
-        ).toJson(),
-      ),
-    );
-  }
-
-  /// Handle tools/call request
-  Future<void> _handleToolsCall(dynamic id, Map<String, dynamic> params) async {
-    final String toolName = params['name'];
-    final Map<String, dynamic> args = params['arguments'] ?? {};
-
-    final tool = _tools[toolName];
-
-    if (tool == null) {
-      throw Exception("Tool not found: $toolName");
-    }
-
-    final result = await tool.execute(args);
-    await _transport?.send(
-      jsonEncode(JsonRpcResponse(id: id, result: result.toJson()).toJson()),
-    );
-  }
-
-  /// Send a logging message
-  Future<void> _sendLogMessage(String level, String message) async {
-    await _transport?.send(
-      jsonEncode(
-        JsonRpcNotification(
-          method: 'notifications/message',
-          params: {'level': level, 'data': message},
-        ).toJson(),
-      ),
-    );
-  }
-
-  MCPServer tool(ToolRunner tool) {
-    _tools[tool.name] = tool;
-    return this;
-  }
-
-  MCPServer prompt(Prompt prompt) {
-    _prompts[prompt.name] = prompt;
-    return this;
-  }
-
-  Future<void> _handlePromptsList(
-    dynamic id,
-    Map<String, dynamic>? params,
-  ) async {
-    await _transport?.send(
-      jsonEncode(
-        JsonRpcResponse(
-          id: id,
-          result: ListPromptsResult(prompts: _prompts.values.toList()).toJson(),
-        ).toJson(),
-      ),
-    );
-  }
-
-  /// Handle prompts/get request
-  Future<void> _handlePromptsGet(
-    dynamic id,
-    Map<String, dynamic> params,
-  ) async {
-    final String name = params['name'];
-    final Map<String, String>? args =
-        params['arguments']?.cast<String, String>();
-
-    try {
-      final prompt = _prompts[name];
-      if (prompt == null) {
-        throw Exception('Prompt not found: $name');
-      }
-      // Validate required arguments
-      for (final arg in prompt.arguments ?? []) {
-        if (arg.required == true &&
-            (args == null || !args.containsKey(arg.name))) {
-          throw Exception('Missing required argument: ${arg.name}');
+      case "sampling/createMessage":
+        if (!(_clientCapabilities?.sampling != null)) {
+          throw McpError(
+            ErrorCode.invalidRequest.value,
+            "Client does not support sampling (required for server to send $method)",
+          );
         }
-      }
+        break;
 
-      final messages = await _generatePromptMessages(name, args ?? {});
+      case "roots/list":
+        if (!(_clientCapabilities?.roots != null)) {
+          throw McpError(
+            ErrorCode.invalidRequest.value,
+            "Client does not support listing roots (required for server to send $method)",
+          );
+        }
+        break;
 
-      await _transport?.send(
-        jsonEncode(
-          JsonRpcResponse(
-            id: id,
-            result:
-                GetPromptResult(
-                  description: prompt.description,
-                  messages: messages,
-                ).toJson(),
-          ).toJson(),
-        ),
-      );
-    } catch (e) {
-      final errorResponse = JsonRpcError(
-        id: id,
-        jsonrpc: jsonRpcVersion,
-        code: JsonRpcErrorCode.invalidRequest,
-        message: 'Error generating prompt: ${e.toString()}',
-      );
-      await _transport?.send(jsonEncode(errorResponse.toJson()));
+      case "ping":
+        break;
+
+      default:
+        print(
+          "Warning: assertCapabilityForMethod called for unknown server-sent request method: $method",
+        );
     }
   }
 
-  /// Generate messages for a prompt template
-  Future<List<PromptMessage>> _generatePromptMessages(
-    String name,
-    Map<String, String> args,
-  ) async {
-    if (name == 'analyze-data') {
-      final data = args['data'] ?? '';
-      final format = args['format'] ?? 'text';
-      return [
-        PromptMessage(
-          role: 'user',
-          content: TextContent(
-            text:
-                'Please analyze this data and provide insights:\n\n$data\n\nProvide the analysis in $format format.',
-          ),
-        ),
-      ];
-    } else if (name == 'explain-code') {
-      final code = args['code'] ?? '';
-      final language = args['language'] ?? '';
-      final detail = args['detail'] ?? 'intermediate';
+  @override
+  void assertNotificationCapability(String method) {
+    switch (method) {
+      case "notifications/message":
+        if (!(_capabilities.logging != null)) {
+          throw StateError(
+            "Server does not support logging capability (required for sending $method)",
+          );
+        }
+        break;
 
-      return [
-        PromptMessage(
-          role: 'user',
-          content: TextContent(
-            text:
-                'Please explain this $language code with a $detail level of detail:\n\n```$language\n$code\n```',
-          ),
-        ),
-      ];
-    } else {
-      throw Exception('Unknown prompt: $name');
+      case "notifications/resources/updated":
+        if (!(_capabilities.resources?.subscribe ?? false)) {
+          throw StateError(
+            "Server does not support resource subscription capability (required for sending $method)",
+          );
+        }
+        break;
+
+      case "notifications/resources/list_changed":
+        if (!(_capabilities.resources?.listChanged ?? false)) {
+          throw StateError(
+            "Server does not support resource list changed notifications capability (required for sending $method)",
+          );
+        }
+        break;
+
+      case "notifications/tools/list_changed":
+        if (!(_capabilities.tools?.listChanged ?? false)) {
+          throw StateError(
+            "Server does not support tool list changed notifications capability (required for sending $method)",
+          );
+        }
+        break;
+
+      case "notifications/prompts/list_changed":
+        if (!(_capabilities.prompts?.listChanged ?? false)) {
+          throw StateError(
+            "Server does not support prompt list changed notifications capability (required for sending $method)",
+          );
+        }
+        break;
+
+      case "notifications/cancelled":
+      case "notifications/progress":
+        break;
+
+      default:
+        print(
+          "Warning: assertNotificationCapability called for unknown server-sent notification method: $method",
+        );
     }
   }
 
-  /// Register available resources
-  MCPServer resource(Resource resource) {
-    _resources[resource.name] = resource;
-    return this;
-  }
+  @override
+  void assertRequestHandlerCapability(String method) {
+    switch (method) {
+      case "initialize":
+      case "ping":
+        break;
 
-  /// Handle resources/list request
-  Future<void> _handleResourcesList(
-    dynamic id,
-    Map<String, dynamic>? params,
-  ) async {
-    await _transport?.send(
-      jsonEncode(
-        JsonRpcResponse(
-          id: id,
-          result:
-              ListResourcesResult(
-                resources: _resources.values.toList(),
-              ).toJson(),
-        ).toJson(),
-      ),
-    );
-  }
+      case "logging/setLevel":
+        if (!(_capabilities.logging != null)) {
+          throw StateError(
+            "Server setup error: Cannot handle '$method' without 'logging' capability",
+          );
+        }
+        break;
 
-  /// Handle resources/read request
-  Future<void> _handleResourcesRead(
-    dynamic id,
-    Map<String, dynamic> params,
-  ) async {
-    final String uri = params['uri'];
+      case "prompts/get":
+      case "prompts/list":
+      case "completion/complete":
+        if (!(_capabilities.prompts != null)) {
+          throw StateError(
+            "Server setup error: Cannot handle '$method' without 'prompts' capability",
+          );
+        }
+        break;
 
-    try {
-      await _transport?.send(
-        jsonEncode(
-          JsonRpcResponse(
-            id: id,
-            result:
-                ReadResourceResult(
-                  contents: [await _readResourceContent(uri)],
-                ).toJson(),
-          ).toJson(),
-        ),
-      );
-    } catch (e) {
-      final errorResponse = JsonRpcError(
-        id: id,
-        jsonrpc: jsonRpcVersion,
-        code: JsonRpcErrorCode.invalidRequest,
-        message: "Error reading resource: ${e.toString()}",
-      );
-      await _transport?.send(jsonEncode(errorResponse.toJson()));
+      case "resources/list":
+      case "resources/templates/list":
+      case "resources/read":
+        if (!(_capabilities.resources != null)) {
+          throw StateError(
+            "Server setup error: Cannot handle '$method' without 'resources' capability",
+          );
+        }
+        break;
+
+      case "resources/subscribe":
+      case "resources/unsubscribe":
+        if (!(_capabilities.resources?.subscribe ?? false)) {
+          throw StateError(
+            "Server setup error: Cannot handle '$method' without 'resources.subscribe' capability",
+          );
+        }
+        break;
+
+      case "tools/call":
+      case "tools/list":
+        if (!(_capabilities.tools != null)) {
+          throw StateError(
+            "Server setup error: Cannot handle '$method' without 'tools' capability",
+          );
+        }
+        break;
+
+      default:
+        print(
+          "Info: Setting request handler for potentially custom method '$method'. Ensure server capabilities match.",
+        );
     }
   }
 
-  /// Handle resources/subscribe request
-  Future<void> _handleResourcesSubscribe(
-    dynamic id,
-    Map<String, dynamic> params,
-  ) async {
-    final String uri = params['uri'];
-    final String clientId =
-        id.toString(); // Using the request ID as a client identifier
-
-    _resourceSubscriptions.putIfAbsent(uri, () => {}).add(clientId);
-
-    await _transport?.send(
-      jsonEncode(JsonRpcResponse(id: id, result: {}).toJson()),
-    );
-    await _sendLogMessage(
-      'info',
-      'Client $clientId subscribed to resource $uri',
+  /// Sends a `ping` request to the client and awaits an empty response.
+  Future<EmptyResult> ping([RequestOptions? options]) {
+    return request<EmptyResult>(
+      JsonRpcPingRequest(id: -1),
+      (json) => const EmptyResult(),
+      options,
     );
   }
 
-  /// Handle resources/unsubscribe request
-  Future<void> _handleResourcesUnsubscribe(
-    dynamic id,
-    Map<String, dynamic> params,
-  ) async {
-    final String uri = params['uri'];
-    final String clientId = id.toString();
-
-    _resourceSubscriptions[uri]?.remove(clientId);
-
-    await _transport?.send(
-      jsonEncode(JsonRpcResponse(id: id, result: {}).toJson()),
-    );
-    await _sendLogMessage(
-      'info',
-      'Client $clientId unsubscribed from resource $uri',
+  /// Sends a `sampling/createMessage` request to the client to ask it to sample an LLM.
+  Future<CreateMessageResult> createMessage(
+    CreateMessageRequestParams params, [
+    RequestOptions? options,
+  ]) {
+    final req = JsonRpcCreateMessageRequest(id: -1, createParams: params);
+    return request<CreateMessageResult>(
+      req,
+      (json) => CreateMessageResult.fromJson(json),
+      options,
     );
   }
 
-  /// Read the content of a resource
-  Future<ResourceContent> _readResourceContent(String uri) async {
-    if (uri == 'system://info') {
-      // Platform dependent code moved to implementation
-      final systemInfo = await _getSystemInfo();
-      return ResourceContent(
-        uri: uri,
-        mimeType: 'text/plain',
-        text: systemInfo.entries.map((e) => '${e.key}: ${e.value}').join('\n'),
-      );
-    } else if (uri == 'notes://list') {
-      final notes = [
-        {
-          'id': 1,
-          'title': 'Welcome to MCP',
-          'content': 'This is a sample note resource in the Dart MCP server.',
-        },
-        {
-          'id': 2,
-          'title': 'MCP Features',
-          'content':
-              'This server demonstrates basic tools and resources capabilities.',
-        },
-      ];
-
-      return ResourceContent(
-        uri: uri,
-        mimeType: 'application/json',
-        text: jsonEncode(notes),
-      );
-    } else {
-      throw Exception('Resource not found: $uri');
-    }
+  /// Sends a `roots/list` request to the client to ask for its root URIs.
+  Future<ListRootsResult> listRoots({RequestOptions? options}) {
+    final req = JsonRpcListRootsRequest(id: -1);
+    return request<ListRootsResult>(
+      req,
+      (json) => ListRootsResult.fromJson(json),
+      options,
+    );
   }
 
-  Future<Map<String, dynamic>> _getSystemInfo() async {
-    return {
-      'platform': 'Implementation dependent',
-      'version': 'Implementation dependent',
-      'dart': 'Implementation dependent',
-      'cpuCount': 'Implementation dependent',
-      'hostname': 'Implementation dependent',
-      'timestamp': DateTime.now().toIso8601String(),
-    };
+  /// Sends a `notifications/message` (logging) notification to the client.
+  Future<void> sendLoggingMessage(LoggingMessageNotificationParams params) {
+    final notif = JsonRpcLoggingMessageNotification(logParams: params);
+    return notification(notif);
+  }
+
+  /// Sends a `notifications/resources/updated` notification to the client.
+  Future<void> sendResourceUpdated(ResourceUpdatedNotificationParams params) {
+    final notif = JsonRpcResourceUpdatedNotification(updatedParams: params);
+    return notification(notif);
+  }
+
+  /// Sends a `notifications/resources/list_changed` notification to the client.
+  Future<void> sendResourceListChanged() {
+    const notif = JsonRpcResourceListChangedNotification();
+    return notification(notif);
+  }
+
+  /// Sends a `notifications/tools/list_changed` notification to the client.
+  Future<void> sendToolListChanged() {
+    const notif = JsonRpcToolListChangedNotification();
+    return notification(notif);
+  }
+
+  /// Sends a `notifications/prompts/list_changed` notification to the client.
+  Future<void> sendPromptListChanged() {
+    const notif = JsonRpcPromptListChangedNotification();
+    return notification(notif);
   }
 }
