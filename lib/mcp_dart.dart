@@ -1,13 +1,12 @@
-/// Support for doing something awesome.
+/// Support for Model Controller Protocol (MCP) SDK for Dart.
 ///
-/// More dartdocs go here.
+/// This package provides a Dart implementation of the Model Controller Protocol (MCP),
+/// which is designed to facilitate communication between clients and servers in a
+/// structured and extensible way.
+///
+/// The library exports key modules and types for building MCP-based applications,
+/// including server implementations, type definitions, and utilities.
 library;
 
-export 'src/transport/transport_layer.dart';
-export 'src/server/server.dart';
-export 'src/server/tool_runner.dart';
-export 'src/types/tool.dart';
-export 'src/types/content.dart';
-export 'src/types/server_result.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+export 'src/server/module.dart'; // Exports the server module for handling MCP server logic.
+export 'src/types.dart'; // Exports shared types used across the MCP protocol.
