@@ -30,7 +30,7 @@ import 'package:mcp_dart/mcp_dart.dart';
 
 void main() async {
   McpServer server = McpServer(
-    Implementation(name: "weather", version: "1.0.0"),
+    Implementation(name: "mcp-example-server", version: "1.0.0"),
     options: ServerOptions(
       capabilities: ServerCapabilities(
         resources: ServerCapabilitiesResources(),
@@ -108,5 +108,7 @@ To configure it with the client (ex, Claude Desktop), you can use the below code
 
 ## Credits
 
-- <https://github.com/crbrotea/dart_mcp>: Transport layer was mostly copied from this library.
-- <https://github.com/nmfisher/simple_dart_mcp_server>: The MCP server implementation was inspired by this library.
+This library is inspired by the following projects:
+
+- <https://github.com/crbrotea/dart_mcp>
+- <https://github.com/nmfisher/simple_dart_mcp_server>

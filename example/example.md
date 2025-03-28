@@ -7,7 +7,7 @@ import 'package:mcp_dart/mcp_dart.dart';
 
 void main() async {
   McpServer server = McpServer(
-    Implementation(name: "weather", version: "1.0.0"),
+    Implementation(name: "example-server", version: "1.0.0"),
     options: ServerOptions(
       capabilities: ServerCapabilities(
         resources: ServerCapabilitiesResources(),
