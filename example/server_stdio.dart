@@ -13,7 +13,7 @@ void main() async {
   );
 
   server.tool(
-    "calculate",
+    'calculate',
     description: 'Perform basic arithmetic operations',
     inputSchemaProperties: {
       'operation': {
@@ -67,7 +67,7 @@ void main() async {
 
   server.prompt(
     'analyze-code',
-    description: "Analyze code for potential improvements",
+    description: 'Analyze code for potential improvements',
     argsSchema: {
       'language': PromptArgumentDefinition(
         type: String,
