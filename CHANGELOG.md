@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Add SSE Server Manager for easier SSE server implementation
+
 ## 0.3.1
 
 - Add Client support (stdio)
