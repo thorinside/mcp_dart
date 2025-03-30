@@ -2465,7 +2465,8 @@ class CreateMessageResult implements BaseResultData {
   Map<String, dynamic> toJson() => {
     'model': model,
     if (stopReason != null)
-      'stopReason': (stopReason is StopReason) ? stopReason.name : stopReason,
+      'stopReason':
+          (stopReason is StopReason) ? stopReason.toString() : stopReason,
     'role': role.name,
     'content': content.toJson(),
   };
