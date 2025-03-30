@@ -1,6 +1,6 @@
 name: mcp_dart
 description: Dart Impementation of Model Context Protocol (MCP) SDK.
-version: 0.3.3
+version: 0.3.4
 repository: https://github.com/leehack/mcp_dart
 
 environment:

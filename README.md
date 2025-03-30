@@ -20,6 +20,8 @@ Ensure you have the correct Dart SDK version installed. See <https://dart.dev/ge
 - Tools
 - Resources
 - Prompts
+- Sampling
+- Roots
 
 ## Getting started
 
