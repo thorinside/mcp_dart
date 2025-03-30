@@ -19,5 +19,27 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
-      - name: Run tests
-        run: dart test
+      - name: Run tests with coverage
+        run: dart test --coverage=coverage
+
+      - name: Generate LCOV report
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+
+      - name: Post coverage comment to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Code Coverage Report
+          message: |
+            ```plaintext
+            $(curl -s https://codecov.io/github/${{ github.repository }}/commit/${{ github.sha }}/coverage)
+            ```
