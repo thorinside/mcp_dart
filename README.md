@@ -9,7 +9,7 @@ This library aims to provide a simple and intuitive way to implement MCP servers
 
 ## Requirements
 
-- Dart SDK version ^3.7.2 or higher
+- Dart SDK version ^3.0.0 or higher
 
 Ensure you have the correct Dart SDK version installed. See <https://dart.dev/get-dart> for installation instructions.
 
