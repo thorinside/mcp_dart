@@ -106,6 +106,10 @@ To configure it with the client (ex, Claude Desktop), you can use the below code
 }
 ```
 
+## More examples
+
+<https://github.com/leehack/mcp_dart/tree/main/example>
+
 ## Credits
 
 This library is inspired by the following projects:

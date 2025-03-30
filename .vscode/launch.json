@@ -5,9 +5,25 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "mcp_dart",
+      "name": "anthropic-client-example",
+      "type": "dart",
       "request": "launch",
-      "type": "dart"
+      "program": "example/anthropic-client/bin/main.dart",
+      "args": ["dart", "../server_stdio.dart"],
+      "env": {
+        "ANTHROPIC_API_KEY": "YOUR_API_KEY"
+      }
+    },
+    {
+      "name": "gemini-client-example",
+      "type": "dart",
+      "request": "launch",
+      "program": "example/gemini-client/bin/main.dart",
+      "args": ["dart", "../server_stdio.dart"],
+      "env": {
+        "GEMINI_API_KEY": "YOUR_API_KEY"
+      },
+      "console": "terminal"
     }
   ]
 }

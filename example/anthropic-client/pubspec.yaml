@@ -1,0 +1,17 @@
+name: anthropic_client
+description: A sample command-line application.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.7.2
+
+# Add regular dependencies here.
+dependencies:
+  anthropic_sdk_dart: ^0.2.0+1
+  mcp_dart:
+    path: ../../
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.0

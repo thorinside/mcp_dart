@@ -1,3 +1,9 @@
+## 0.3.3
+
+- Add Gemini MCP Client Example
+- Add Anthropic MCP Client Example
+- Add Weather MCP Server Example
+
 ## 0.3.2
 
 - Add SSE Server Manager for easier SSE server implementation
