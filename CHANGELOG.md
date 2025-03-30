@@ -1,3 +1,7 @@
+## 0.3.5
+
+- Lower min dart sdk to 3.0.0
+
 ## 0.3.4
 
 - Fix Sampling result parsing error
@@ -16,7 +20,7 @@
 
 - Add Client support (stdio)
 - Add resource and prompts example to stdio server and client
-  
+
 ## 0.3.0
 
 - Full refactor of the codebase to match it with the Typescript SDK implementation.
