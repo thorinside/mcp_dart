@@ -53,12 +53,11 @@ sealed class JsonRpcMessage {
           'tools/call' => JsonRpcCallToolRequest.fromJson(json),
           'logging/setLevel' => JsonRpcSetLevelRequest.fromJson(json),
           'sampling/createMessage' => JsonRpcCreateMessageRequest.fromJson(
-            json,
-          ),
+              json,
+            ),
           'completion/complete' => JsonRpcCompleteRequest.fromJson(json),
           'roots/list' => JsonRpcListRootsRequest.fromJson(json),
-          _ =>
-            throw UnimplementedError(
+          _ => throw UnimplementedError(
               "fromJson for request method '$method' not implemented",
             ),
         };
@@ -67,11 +66,11 @@ sealed class JsonRpcMessage {
           'notifications/initialized' =>
             JsonRpcInitializedNotification.fromJson(json),
           'notifications/cancelled' => JsonRpcCancelledNotification.fromJson(
-            json,
-          ),
+              json,
+            ),
           'notifications/progress' => JsonRpcProgressNotification.fromJson(
-            json,
-          ),
+              json,
+            ),
           'notifications/resources/list_changed' =>
             JsonRpcResourceListChangedNotification.fromJson(json),
           'notifications/resources/updated' =>
@@ -81,12 +80,11 @@ sealed class JsonRpcMessage {
           'notifications/tools/list_changed' =>
             JsonRpcToolListChangedNotification.fromJson(json),
           'notifications/message' => JsonRpcLoggingMessageNotification.fromJson(
-            json,
-          ),
+              json,
+            ),
           'notifications/roots/list_changed' =>
             JsonRpcRootsListChangedNotification.fromJson(json),
-          _ =>
-            throw UnimplementedError(
+          _ => throw UnimplementedError(
               "fromJson for notification method '$method' not implemented",
             ),
         };
@@ -135,12 +133,15 @@ class JsonRpcRequest extends JsonRpcMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-    'jsonrpc': jsonrpc,
-    'id': id,
-    'method': method,
-    if (params != null || meta != null)
-      'params': <String, dynamic>{...?params, if (meta != null) '_meta': meta},
-  };
+        'jsonrpc': jsonrpc,
+        'id': id,
+        'method': method,
+        if (params != null || meta != null)
+          'params': <String, dynamic>{
+            ...?params,
+            if (meta != null) '_meta': meta
+          },
+      };
 }
 
 /// Base class for JSON-RPC notifications which do not expect a response.
@@ -159,11 +160,14 @@ class JsonRpcNotification extends JsonRpcMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-    'jsonrpc': jsonrpc,
-    'method': method,
-    if (params != null || meta != null)
-      'params': <String, dynamic>{...?params, if (meta != null) '_meta': meta},
-  };
+        'jsonrpc': jsonrpc,
+        'method': method,
+        if (params != null || meta != null)
+          'params': <String, dynamic>{
+            ...?params,
+            if (meta != null) '_meta': meta
+          },
+      };
 }
 
 /// Represents a successful (non-error) response to a request.
@@ -182,10 +186,10 @@ class JsonRpcResponse extends JsonRpcMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-    'jsonrpc': jsonrpc,
-    'id': id,
-    'result': <String, dynamic>{...result, if (meta != null) '_meta': meta},
-  };
+        'jsonrpc': jsonrpc,
+        'id': id,
+        'result': <String, dynamic>{...result, if (meta != null) '_meta': meta},
+      };
 }
 // --- JSON-RPC Error ---
 
@@ -228,10 +232,10 @@ class JsonRpcErrorData {
       );
 
   Map<String, dynamic> toJson() => {
-    'code': code,
-    'message': message,
-    if (data != null) 'data': data,
-  };
+        'code': code,
+        'message': message,
+        if (data != null) 'data': data,
+      };
 }
 
 /// Represents a response indicating an error occurred during a request.
@@ -242,16 +246,16 @@ class JsonRpcError extends JsonRpcMessage {
   const JsonRpcError({required this.id, required this.error});
 
   factory JsonRpcError.fromJson(Map<String, dynamic> json) => JsonRpcError(
-    id: json['id'],
-    error: JsonRpcErrorData.fromJson(json['error'] as Map<String, dynamic>),
-  );
+        id: json['id'],
+        error: JsonRpcErrorData.fromJson(json['error'] as Map<String, dynamic>),
+      );
 
   @override
   Map<String, dynamic> toJson() => {
-    'jsonrpc': jsonrpc,
-    'id': id,
-    'error': error.toJson(),
-  };
+        'jsonrpc': jsonrpc,
+        'id': id,
+        'error': error.toJson(),
+      };
 }
 
 /// Base class for specific MCP result types.
@@ -291,9 +295,9 @@ class CancelledNotificationParams {
       );
 
   Map<String, dynamic> toJson() => {
-    'requestId': requestId,
-    if (reason != null) 'reason': reason,
-  };
+        'requestId': requestId,
+        if (reason != null) 'reason': reason,
+      };
 }
 
 /// Notification sent by either side to indicate cancellation of a request.
@@ -302,7 +306,7 @@ class JsonRpcCancelledNotification extends JsonRpcNotification {
   final CancelledNotificationParams cancelParams;
 
   JsonRpcCancelledNotification({required this.cancelParams, super.meta})
-    : super(method: "notifications/cancelled", params: cancelParams.toJson());
+      : super(method: "notifications/cancelled", params: cancelParams.toJson());
 
   factory JsonRpcCancelledNotification.fromJson(Map<String, dynamic> json) {
     final paramsMap = json['params'] as Map<String, dynamic>?;
@@ -335,10 +339,9 @@ class Implementation {
   });
 
   factory Implementation.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('name')
-          ..remove('version');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('name')
+      ..remove('version');
     return Implementation(
       name: json['name'] as String,
       version: json['version'] as String,
@@ -347,10 +350,10 @@ class Implementation {
   }
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'version': version,
-    ...additionalProperties,
-  };
+        'name': name,
+        'version': version,
+        ...additionalProperties,
+      };
 }
 
 /// Describes capabilities related to root resources (e.g., workspace folders).
@@ -375,9 +378,9 @@ class ClientCapabilitiesRoots {
   }
 
   Map<String, dynamic> toJson() => {
-    if (listChanged != null) 'listChanged': listChanged,
-    ...additionalProperties,
-  };
+        if (listChanged != null) 'listChanged': listChanged,
+        ...additionalProperties,
+      };
 }
 
 /// Capabilities a client may support.
@@ -402,11 +405,10 @@ class ClientCapabilities {
   });
 
   factory ClientCapabilities.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('experimental')
-          ..remove('sampling')
-          ..remove('roots');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('experimental')
+      ..remove('sampling')
+      ..remove('roots');
     final rootsMap = json['roots'] as Map<String, dynamic>?;
     return ClientCapabilities(
       experimental: json['experimental'] as Map<String, dynamic>?,
@@ -418,11 +420,11 @@ class ClientCapabilities {
   }
 
   Map<String, dynamic> toJson() => {
-    if (experimental != null) 'experimental': experimental,
-    if (sampling != null) 'sampling': sampling,
-    if (roots != null) 'roots': roots!.toJson(),
-    ...additionalProperties,
-  };
+        if (experimental != null) 'experimental': experimental,
+        if (sampling != null) 'sampling': sampling,
+        if (roots != null) 'roots': roots!.toJson(),
+        ...additionalProperties,
+      };
 }
 
 /// Parameters for the `initialize` request.
@@ -454,10 +456,10 @@ class InitializeRequestParams {
       );
 
   Map<String, dynamic> toJson() => {
-    'protocolVersion': protocolVersion,
-    'capabilities': capabilities.toJson(),
-    'clientInfo': clientInfo.toJson(),
-  };
+        'protocolVersion': protocolVersion,
+        'capabilities': capabilities.toJson(),
+        'clientInfo': clientInfo.toJson(),
+      };
 }
 
 /// Request sent from client to server upon connection to begin initialization.
@@ -507,9 +509,9 @@ class ServerCapabilitiesPrompts {
   }
 
   Map<String, dynamic> toJson() => {
-    if (listChanged != null) 'listChanged': listChanged,
-    ...additionalProperties,
-  };
+        if (listChanged != null) 'listChanged': listChanged,
+        ...additionalProperties,
+      };
 }
 
 /// Describes capabilities related to resources.
@@ -530,10 +532,9 @@ class ServerCapabilitiesResources {
   });
 
   factory ServerCapabilitiesResources.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('subscribe')
-          ..remove('listChanged');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('subscribe')
+      ..remove('listChanged');
     return ServerCapabilitiesResources(
       subscribe: json['subscribe'] as bool?,
       listChanged: json['listChanged'] as bool?,
@@ -542,10 +543,10 @@ class ServerCapabilitiesResources {
   }
 
   Map<String, dynamic> toJson() => {
-    if (subscribe != null) 'subscribe': subscribe,
-    if (listChanged != null) 'listChanged': listChanged,
-    ...additionalProperties,
-  };
+        if (subscribe != null) 'subscribe': subscribe,
+        if (listChanged != null) 'listChanged': listChanged,
+        ...additionalProperties,
+      };
 }
 
 /// Describes capabilities related to tools.
@@ -570,9 +571,9 @@ class ServerCapabilitiesTools {
   }
 
   Map<String, dynamic> toJson() => {
-    if (listChanged != null) 'listChanged': listChanged,
-    ...additionalProperties,
-  };
+        if (listChanged != null) 'listChanged': listChanged,
+        ...additionalProperties,
+      };
 }
 
 /// Capabilities a server may support.
@@ -605,13 +606,12 @@ class ServerCapabilities {
   });
 
   factory ServerCapabilities.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('experimental')
-          ..remove('logging')
-          ..remove('prompts')
-          ..remove('resources')
-          ..remove('tools');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('experimental')
+      ..remove('logging')
+      ..remove('prompts')
+      ..remove('resources')
+      ..remove('tools');
     final pMap = json['prompts'] as Map<String, dynamic>?;
     final rMap = json['resources'] as Map<String, dynamic>?;
     final tMap = json['tools'] as Map<String, dynamic>?;
@@ -627,13 +627,13 @@ class ServerCapabilities {
   }
 
   Map<String, dynamic> toJson() => {
-    if (experimental != null) 'experimental': experimental,
-    if (logging != null) 'logging': logging,
-    if (prompts != null) 'prompts': prompts!.toJson(),
-    if (resources != null) 'resources': resources!.toJson(),
-    if (tools != null) 'tools': tools!.toJson(),
-    ...additionalProperties,
-  };
+        if (experimental != null) 'experimental': experimental,
+        if (logging != null) 'logging': logging,
+        if (prompts != null) 'prompts': prompts!.toJson(),
+        if (resources != null) 'resources': resources!.toJson(),
+        if (tools != null) 'tools': tools!.toJson(),
+        ...additionalProperties,
+      };
 }
 
 /// Result data for a successful `initialize` request.
@@ -679,17 +679,17 @@ class InitializeResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'protocolVersion': protocolVersion,
-    'capabilities': capabilities.toJson(),
-    'serverInfo': serverInfo.toJson(),
-    if (instructions != null) 'instructions': instructions,
-  };
+        'protocolVersion': protocolVersion,
+        'capabilities': capabilities.toJson(),
+        'serverInfo': serverInfo.toJson(),
+        if (instructions != null) 'instructions': instructions,
+      };
 }
 
 /// Notification sent from the client to the server after initialization is finished.
 class JsonRpcInitializedNotification extends JsonRpcNotification {
   const JsonRpcInitializedNotification()
-    : super(method: "notifications/initialized");
+      : super(method: "notifications/initialized");
 
   factory JsonRpcInitializedNotification.fromJson(Map<String, dynamic> json) =>
       const JsonRpcInitializedNotification();
@@ -721,10 +721,9 @@ class Progress {
   });
 
   factory Progress.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('progress')
-          ..remove('total');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('progress')
+      ..remove('total');
     return Progress(
       progress: json['progress'] as num,
       total: json['total'] as num?,
@@ -733,10 +732,10 @@ class Progress {
   }
 
   Map<String, dynamic> toJson() => {
-    'progress': progress,
-    if (total != null) 'total': total,
-    ...additionalProperties,
-  };
+        'progress': progress,
+        if (total != null) 'total': total,
+        ...additionalProperties,
+      };
 }
 
 /// Parameters for the `notifications/progress` notification.
@@ -775,13 +774,13 @@ class ProgressNotificationParams implements Progress {
 
   @override
   Map<String, dynamic> toJson() => {
-    'progressToken': progressToken,
-    ...Progress(
-      progress: progress,
-      total: total,
-      additionalProperties: additionalProperties,
-    ).toJson(),
-  };
+        'progressToken': progressToken,
+        ...Progress(
+          progress: progress,
+          total: total,
+          additionalProperties: additionalProperties,
+        ).toJson(),
+      };
 }
 
 /// Out-of-band notification informing the receiver of progress on a request.
@@ -791,7 +790,8 @@ class JsonRpcProgressNotification extends JsonRpcNotification {
 
   /// Creates a progress notification.
   JsonRpcProgressNotification({required this.progressParams, super.meta})
-    : super(method: "notifications/progress", params: progressParams.toJson());
+      : super(
+            method: "notifications/progress", params: progressParams.toJson());
 
   /// Creates from JSON.
   factory JsonRpcProgressNotification.fromJson(Map<String, dynamic> json) {
@@ -828,12 +828,11 @@ sealed class ResourceContents {
   factory ResourceContents.fromJson(Map<String, dynamic> json) {
     final uri = json['uri'] as String;
     final mimeType = json['mimeType'] as String?;
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('uri')
-          ..remove('mimeType')
-          ..remove('text')
-          ..remove('blob');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('uri')
+      ..remove('mimeType')
+      ..remove('text')
+      ..remove('blob');
     if (json.containsKey('text')) {
       return TextResourceContents(
         uri: uri,
@@ -859,15 +858,15 @@ sealed class ResourceContents {
 
   /// Converts resource contents to JSON.
   Map<String, dynamic> toJson() => {
-    'uri': uri,
-    if (mimeType != null) 'mimeType': mimeType,
-    ...switch (this) {
-      TextResourceContents c => {'text': c.text},
-      BlobResourceContents c => {'blob': c.blob},
-      UnknownResourceContents _ => {},
-    },
-    ...additionalProperties,
-  };
+        'uri': uri,
+        if (mimeType != null) 'mimeType': mimeType,
+        ...switch (this) {
+          TextResourceContents c => {'text': c.text},
+          BlobResourceContents c => {'blob': c.blob},
+          UnknownResourceContents _ => {},
+        },
+        ...additionalProperties,
+      };
 }
 
 /// Resource contents represented as text.
@@ -932,12 +931,11 @@ class Resource {
 
   /// Creates from JSON.
   factory Resource.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('uri')
-          ..remove('name')
-          ..remove('description')
-          ..remove('mimeType');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('uri')
+      ..remove('name')
+      ..remove('description')
+      ..remove('mimeType');
     return Resource(
       uri: json['uri'] as String,
       name: json['name'] as String,
@@ -949,12 +947,12 @@ class Resource {
 
   /// Converts to JSON.
   Map<String, dynamic> toJson() => {
-    'uri': uri,
-    'name': name,
-    if (description != null) 'description': description,
-    if (mimeType != null) 'mimeType': mimeType,
-    ...additionalProperties,
-  };
+        'uri': uri,
+        'name': name,
+        if (description != null) 'description': description,
+        if (mimeType != null) 'mimeType': mimeType,
+        ...additionalProperties,
+      };
 }
 
 /// A template description for resources available on the server.
@@ -985,12 +983,11 @@ class ResourceTemplate {
 
   /// Creates from JSON.
   factory ResourceTemplate.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('uriTemplate')
-          ..remove('name')
-          ..remove('description')
-          ..remove('mimeType');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('uriTemplate')
+      ..remove('name')
+      ..remove('description')
+      ..remove('mimeType');
     return ResourceTemplate(
       uriTemplate: json['uriTemplate'] as String,
       name: json['name'] as String,
@@ -1002,12 +999,12 @@ class ResourceTemplate {
 
   /// Converts to JSON.
   Map<String, dynamic> toJson() => {
-    'uriTemplate': uriTemplate,
-    'name': name,
-    if (description != null) 'description': description,
-    if (mimeType != null) 'mimeType': mimeType,
-    ...additionalProperties,
-  };
+        'uriTemplate': uriTemplate,
+        'name': name,
+        if (description != null) 'description': description,
+        if (mimeType != null) 'mimeType': mimeType,
+        ...additionalProperties,
+      };
 }
 
 /// Parameters for the `resources/list` request. Includes pagination.
@@ -1036,8 +1033,8 @@ class JsonRpcListResourcesRequest extends JsonRpcRequest {
     required super.id,
     ListResourcesRequestParams? params,
     super.meta,
-  }) : listParams = params ?? const ListResourcesRequestParams(),
-       super(method: "resources/list", params: params?.toJson());
+  })  : listParams = params ?? const ListResourcesRequestParams(),
+        super(method: "resources/list", params: params?.toJson());
 
   /// Creates from JSON.
   factory JsonRpcListResourcesRequest.fromJson(Map<String, dynamic> json) {
@@ -1045,10 +1042,9 @@ class JsonRpcListResourcesRequest extends JsonRpcRequest {
     final meta = paramsMap?['_meta'] as Map<String, dynamic>?;
     return JsonRpcListResourcesRequest(
       id: json['id'],
-      params:
-          paramsMap == null
-              ? null
-              : ListResourcesRequestParams.fromJson(paramsMap),
+      params: paramsMap == null
+          ? null
+          : ListResourcesRequestParams.fromJson(paramsMap),
       meta: meta,
     );
   }
@@ -1077,8 +1073,7 @@ class ListResourcesResult implements BaseResultData {
   factory ListResourcesResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
     return ListResourcesResult(
-      resources:
-          (json['resources'] as List<dynamic>?)
+      resources: (json['resources'] as List<dynamic>?)
               ?.map((e) => Resource.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -1090,9 +1085,9 @@ class ListResourcesResult implements BaseResultData {
   /// Converts to JSON (excluding meta).
   @override
   Map<String, dynamic> toJson() => {
-    'resources': resources.map((r) => r.toJson()).toList(),
-    if (nextCursor != null) 'nextCursor': nextCursor,
-  };
+        'resources': resources.map((r) => r.toJson()).toList(),
+        if (nextCursor != null) 'nextCursor': nextCursor,
+      };
 }
 
 /// Parameters for the `resources/templates/list` request. Includes pagination.
@@ -1104,7 +1099,8 @@ class ListResourceTemplatesRequestParams {
 
   factory ListResourceTemplatesRequestParams.fromJson(
     Map<String, dynamic> json,
-  ) => ListResourceTemplatesRequestParams(cursor: json['cursor'] as String?);
+  ) =>
+      ListResourceTemplatesRequestParams(cursor: json['cursor'] as String?);
 
   Map<String, dynamic> toJson() => {if (cursor != null) 'cursor': cursor};
 }
@@ -1118,8 +1114,8 @@ class JsonRpcListResourceTemplatesRequest extends JsonRpcRequest {
     required super.id,
     ListResourceTemplatesRequestParams? params,
     super.meta,
-  }) : listParams = params ?? const ListResourceTemplatesRequestParams(),
-       super(method: "resources/templates/list", params: params?.toJson());
+  })  : listParams = params ?? const ListResourceTemplatesRequestParams(),
+        super(method: "resources/templates/list", params: params?.toJson());
 
   factory JsonRpcListResourceTemplatesRequest.fromJson(
     Map<String, dynamic> json,
@@ -1128,10 +1124,9 @@ class JsonRpcListResourceTemplatesRequest extends JsonRpcRequest {
     final meta = paramsMap?['_meta'] as Map<String, dynamic>?;
     return JsonRpcListResourceTemplatesRequest(
       id: json['id'],
-      params:
-          paramsMap == null
-              ? null
-              : ListResourceTemplatesRequestParams.fromJson(paramsMap),
+      params: paramsMap == null
+          ? null
+          : ListResourceTemplatesRequestParams.fromJson(paramsMap),
       meta: meta,
     );
   }
@@ -1157,8 +1152,7 @@ class ListResourceTemplatesResult implements BaseResultData {
   factory ListResourceTemplatesResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
     return ListResourceTemplatesResult(
-      resourceTemplates:
-          (json['resourceTemplates'] as List<dynamic>?)
+      resourceTemplates: (json['resourceTemplates'] as List<dynamic>?)
               ?.map((e) => ResourceTemplate.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -1169,9 +1163,9 @@ class ListResourceTemplatesResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'resourceTemplates': resourceTemplates.map((t) => t.toJson()).toList(),
-    if (nextCursor != null) 'nextCursor': nextCursor,
-  };
+        'resourceTemplates': resourceTemplates.map((t) => t.toJson()).toList(),
+        if (nextCursor != null) 'nextCursor': nextCursor,
+      };
 }
 
 /// Parameters for the `resources/read` request.
@@ -1225,8 +1219,7 @@ class ReadResourceResult implements BaseResultData {
   factory ReadResourceResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
     return ReadResourceResult(
-      contents:
-          (json['contents'] as List<dynamic>?)
+      contents: (json['contents'] as List<dynamic>?)
               ?.map((e) => ResourceContents.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -1236,18 +1229,19 @@ class ReadResourceResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'contents': contents.map((c) => c.toJson()).toList(),
-  };
+        'contents': contents.map((c) => c.toJson()).toList(),
+      };
 }
 
 /// Notification from server indicating the list of available resources has changed.
 class JsonRpcResourceListChangedNotification extends JsonRpcNotification {
   const JsonRpcResourceListChangedNotification()
-    : super(method: "notifications/resources/list_changed");
+      : super(method: "notifications/resources/list_changed");
 
   factory JsonRpcResourceListChangedNotification.fromJson(
     Map<String, dynamic> json,
-  ) => const JsonRpcResourceListChangedNotification();
+  ) =>
+      const JsonRpcResourceListChangedNotification();
 }
 
 /// Parameters for the `resources/subscribe` request.
@@ -1335,7 +1329,8 @@ class ResourceUpdatedNotificationParams {
 
   factory ResourceUpdatedNotificationParams.fromJson(
     Map<String, dynamic> json,
-  ) => ResourceUpdatedNotificationParams(uri: json['uri'] as String);
+  ) =>
+      ResourceUpdatedNotificationParams(uri: json['uri'] as String);
 
   Map<String, dynamic> toJson() => {'uri': uri};
 }
@@ -1346,10 +1341,10 @@ class JsonRpcResourceUpdatedNotification extends JsonRpcNotification {
   final ResourceUpdatedNotificationParams updatedParams;
 
   JsonRpcResourceUpdatedNotification({required this.updatedParams, super.meta})
-    : super(
-        method: "notifications/resources/updated",
-        params: updatedParams.toJson(),
-      );
+      : super(
+          method: "notifications/resources/updated",
+          params: updatedParams.toJson(),
+        );
 
   factory JsonRpcResourceUpdatedNotification.fromJson(
     Map<String, dynamic> json,
@@ -1388,11 +1383,10 @@ class PromptArgument {
   });
 
   factory PromptArgument.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('name')
-          ..remove('description')
-          ..remove('required');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('name')
+      ..remove('description')
+      ..remove('required');
     return PromptArgument(
       name: json['name'] as String,
       description: json['description'] as String?,
@@ -1402,11 +1396,11 @@ class PromptArgument {
   }
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    if (description != null) 'description': description,
-    if (required != null) 'required': required,
-    ...additionalProperties,
-  };
+        'name': name,
+        if (description != null) 'description': description,
+        if (required != null) 'required': required,
+        ...additionalProperties,
+      };
 }
 
 /// A prompt or prompt template offered by the server.
@@ -1431,29 +1425,27 @@ class Prompt {
   });
 
   factory Prompt.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('name')
-          ..remove('description')
-          ..remove('arguments');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('name')
+      ..remove('description')
+      ..remove('arguments');
     return Prompt(
       name: json['name'] as String,
       description: json['description'] as String?,
-      arguments:
-          (json['arguments'] as List<dynamic>?)
-              ?.map((a) => PromptArgument.fromJson(a as Map<String, dynamic>))
-              .toList(),
+      arguments: (json['arguments'] as List<dynamic>?)
+          ?.map((a) => PromptArgument.fromJson(a as Map<String, dynamic>))
+          .toList(),
       additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    if (description != null) 'description': description,
-    if (arguments != null)
-      'arguments': arguments!.map((a) => a.toJson()).toList(),
-    ...additionalProperties,
-  };
+        'name': name,
+        if (description != null) 'description': description,
+        if (arguments != null)
+          'arguments': arguments!.map((a) => a.toJson()).toList(),
+        ...additionalProperties,
+      };
 }
 
 /// Parameters for the `prompts/list` request. Includes pagination.
@@ -1478,18 +1470,17 @@ class JsonRpcListPromptsRequest extends JsonRpcRequest {
     required super.id,
     ListPromptsRequestParams? params,
     super.meta,
-  }) : listParams = params ?? const ListPromptsRequestParams(),
-       super(method: "prompts/list", params: params?.toJson());
+  })  : listParams = params ?? const ListPromptsRequestParams(),
+        super(method: "prompts/list", params: params?.toJson());
 
   factory JsonRpcListPromptsRequest.fromJson(Map<String, dynamic> json) {
     final paramsMap = json['params'] as Map<String, dynamic>?;
     final meta = paramsMap?['_meta'] as Map<String, dynamic>?;
     return JsonRpcListPromptsRequest(
       id: json['id'],
-      params:
-          paramsMap == null
-              ? null
-              : ListPromptsRequestParams.fromJson(paramsMap),
+      params: paramsMap == null
+          ? null
+          : ListPromptsRequestParams.fromJson(paramsMap),
       meta: meta,
     );
   }
@@ -1512,8 +1503,7 @@ class ListPromptsResult implements BaseResultData {
   factory ListPromptsResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
     return ListPromptsResult(
-      prompts:
-          (json['prompts'] as List<dynamic>?)
+      prompts: (json['prompts'] as List<dynamic>?)
               ?.map((p) => Prompt.fromJson(p as Map<String, dynamic>))
               .toList() ??
           [],
@@ -1524,9 +1514,9 @@ class ListPromptsResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'prompts': prompts.map((p) => p.toJson()).toList(),
-    if (nextCursor != null) 'nextCursor': nextCursor,
-  };
+        'prompts': prompts.map((p) => p.toJson()).toList(),
+        if (nextCursor != null) 'nextCursor': nextCursor,
+      };
 }
 
 /// Parameters for the `prompts/get` request.
@@ -1548,9 +1538,9 @@ class GetPromptRequestParams {
       );
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    if (arguments != null) 'arguments': arguments,
-  };
+        'name': name,
+        if (arguments != null) 'arguments': arguments,
+      };
 }
 
 /// Request sent from client to get a specific prompt, potentially with template arguments.
@@ -1599,15 +1589,15 @@ sealed class Content {
   }
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    ...switch (this) {
-      TextContent c => {'text': c.text},
-      ImageContent c => {'data': c.data, 'mimeType': c.mimeType},
-      EmbeddedResource c => {'resource': c.resource.toJson()},
-      UnknownContent _ => {},
-    },
-    ...additionalProperties,
-  };
+        'type': type,
+        ...switch (this) {
+          TextContent c => {'text': c.text},
+          ImageContent c => {'data': c.data, 'mimeType': c.mimeType},
+          EmbeddedResource c => {'resource': c.resource.toJson()},
+          UnknownContent _ => {},
+        },
+        ...additionalProperties,
+      };
 }
 
 /// Text content.
@@ -1616,13 +1606,12 @@ class TextContent extends Content {
   final String text;
 
   const TextContent({required this.text, super.additionalProperties})
-    : super(type: 'text');
+      : super(type: 'text');
 
   factory TextContent.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('type')
-          ..remove('text');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('type')
+      ..remove('text');
     return TextContent(
       text: json['text'] as String,
       additionalProperties: rest,
@@ -1645,11 +1634,10 @@ class ImageContent extends Content {
   }) : super(type: 'image');
 
   factory ImageContent.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('type')
-          ..remove('data')
-          ..remove('mimeType');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('type')
+      ..remove('data')
+      ..remove('mimeType');
     return ImageContent(
       data: json['data'] as String,
       mimeType: json['mimeType'] as String,
@@ -1664,13 +1652,12 @@ class EmbeddedResource extends Content {
   final ResourceContents resource;
 
   const EmbeddedResource({required this.resource, super.additionalProperties})
-    : super(type: 'resource');
+      : super(type: 'resource');
 
   factory EmbeddedResource.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('type')
-          ..remove('resource');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('type')
+      ..remove('resource');
     return EmbeddedResource(
       resource: ResourceContents.fromJson(
         json['resource'] as Map<String, dynamic>,
@@ -1706,10 +1693,9 @@ class PromptMessage {
   });
 
   factory PromptMessage.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('role')
-          ..remove('content');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('role')
+      ..remove('content');
     return PromptMessage(
       role: PromptMessageRole.values.byName(json['role'] as String),
       content: Content.fromJson(json['content'] as Map<String, dynamic>),
@@ -1718,10 +1704,10 @@ class PromptMessage {
   }
 
   Map<String, dynamic> toJson() => {
-    'role': role.name,
-    'content': content.toJson(),
-    ...additionalProperties,
-  };
+        'role': role.name,
+        'content': content.toJson(),
+        ...additionalProperties,
+      };
 }
 
 /// Result data for a successful `prompts/get` request.
@@ -1742,8 +1728,7 @@ class GetPromptResult implements BaseResultData {
     final meta = json['_meta'] as Map<String, dynamic>?;
     return GetPromptResult(
       description: json['description'] as String?,
-      messages:
-          (json['messages'] as List<dynamic>?)
+      messages: (json['messages'] as List<dynamic>?)
               ?.map((m) => PromptMessage.fromJson(m as Map<String, dynamic>))
               .toList() ??
           [],
@@ -1753,19 +1738,20 @@ class GetPromptResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    if (description != null) 'description': description,
-    'messages': messages.map((m) => m.toJson()).toList(),
-  };
+        if (description != null) 'description': description,
+        'messages': messages.map((m) => m.toJson()).toList(),
+      };
 }
 
 /// Notification from server indicating the list of available prompts has changed.
 class JsonRpcPromptListChangedNotification extends JsonRpcNotification {
   const JsonRpcPromptListChangedNotification()
-    : super(method: "notifications/prompts/list_changed");
+      : super(method: "notifications/prompts/list_changed");
 
   factory JsonRpcPromptListChangedNotification.fromJson(
     Map<String, dynamic> json,
-  ) => const JsonRpcPromptListChangedNotification();
+  ) =>
+      const JsonRpcPromptListChangedNotification();
 }
 
 /// Describes the input schema for a tool, based on JSON Schema.
@@ -1785,10 +1771,9 @@ class ToolInputSchema {
   });
 
   factory ToolInputSchema.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('type')
-          ..remove('properties');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('type')
+      ..remove('properties');
     return ToolInputSchema(
       properties: json['properties'] as Map<String, dynamic>?,
       additionalProperties: rest,
@@ -1796,10 +1781,10 @@ class ToolInputSchema {
   }
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    if (properties != null) 'properties': properties,
-    ...additionalProperties,
-  };
+        'type': type,
+        if (properties != null) 'properties': properties,
+        ...additionalProperties,
+      };
 }
 
 /// Definition for a tool offered by the server.
@@ -1824,11 +1809,10 @@ class Tool {
   });
 
   factory Tool.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('name')
-          ..remove('description')
-          ..remove('inputSchema');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('name')
+      ..remove('description')
+      ..remove('inputSchema');
     return Tool(
       name: json['name'] as String,
       description: json['description'] as String?,
@@ -1840,11 +1824,11 @@ class Tool {
   }
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    if (description != null) 'description': description,
-    'inputSchema': inputSchema.toJson(),
-    ...additionalProperties,
-  };
+        'name': name,
+        if (description != null) 'description': description,
+        'inputSchema': inputSchema.toJson(),
+        ...additionalProperties,
+      };
 }
 
 /// Parameters for the `tools/list` request. Includes pagination.
@@ -1869,8 +1853,8 @@ class JsonRpcListToolsRequest extends JsonRpcRequest {
     required super.id,
     ListToolsRequestParams? params,
     super.meta,
-  }) : listParams = params ?? const ListToolsRequestParams(),
-       super(method: "tools/list", params: params?.toJson());
+  })  : listParams = params ?? const ListToolsRequestParams(),
+        super(method: "tools/list", params: params?.toJson());
 
   factory JsonRpcListToolsRequest.fromJson(Map<String, dynamic> json) {
     final paramsMap = json['params'] as Map<String, dynamic>?;
@@ -1901,8 +1885,7 @@ class ListToolsResult implements BaseResultData {
   factory ListToolsResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
     return ListToolsResult(
-      tools:
-          (json['tools'] as List<dynamic>?)
+      tools: (json['tools'] as List<dynamic>?)
               ?.map((t) => Tool.fromJson(t as Map<String, dynamic>))
               .toList() ??
           [],
@@ -1913,9 +1896,9 @@ class ListToolsResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'tools': tools.map((t) => t.toJson()).toList(),
-    if (nextCursor != null) 'nextCursor': nextCursor,
-  };
+        'tools': tools.map((t) => t.toJson()).toList(),
+        if (nextCursor != null) 'nextCursor': nextCursor,
+      };
 }
 
 /// Parameters for the `tools/call` request.
@@ -1935,9 +1918,9 @@ class CallToolRequestParams {
       );
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    if (arguments != null) 'arguments': arguments,
-  };
+        'name': name,
+        if (arguments != null) 'arguments': arguments,
+      };
 }
 
 /// Request sent from client to invoke a tool provided by the server.
@@ -1984,15 +1967,13 @@ class CallToolResult implements BaseResultData {
     if (json.containsKey('toolResult')) {
       final toolResult = json['toolResult'];
       final bool isErr = json['isError'] as bool? ?? false;
-      List<Content> mappedContent =
-          (toolResult is String)
-              ? [TextContent(text: toolResult)]
-              : [TextContent(text: jsonEncode(toolResult))];
+      List<Content> mappedContent = (toolResult is String)
+          ? [TextContent(text: toolResult)]
+          : [TextContent(text: jsonEncode(toolResult))];
       return CallToolResult(content: mappedContent, isError: isErr, meta: meta);
     }
     return CallToolResult(
-      content:
-          (json['content'] as List<dynamic>?)
+      content: (json['content'] as List<dynamic>?)
               ?.map((c) => Content.fromJson(c as Map<String, dynamic>))
               .toList() ??
           [],
@@ -2003,19 +1984,20 @@ class CallToolResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'content': content.map((c) => c.toJson()).toList(),
-    if (isError == true) 'isError': true,
-  };
+        'content': content.map((c) => c.toJson()).toList(),
+        if (isError == true) 'isError': true,
+      };
 }
 
 /// Notification from server indicating the list of available tools has changed.
 class JsonRpcToolListChangedNotification extends JsonRpcNotification {
   const JsonRpcToolListChangedNotification()
-    : super(method: "notifications/tools/list_changed");
+      : super(method: "notifications/tools/list_changed");
 
   factory JsonRpcToolListChangedNotification.fromJson(
     Map<String, dynamic> json,
-  ) => const JsonRpcToolListChangedNotification();
+  ) =>
+      const JsonRpcToolListChangedNotification();
 }
 
 /// Severity levels for log messages (syslog levels).
@@ -2089,17 +2071,18 @@ class LoggingMessageNotificationParams {
 
   factory LoggingMessageNotificationParams.fromJson(
     Map<String, dynamic> json,
-  ) => LoggingMessageNotificationParams(
-    level: LoggingLevel.values.byName(json['level'] as String),
-    logger: json['logger'] as String?,
-    data: json['data'],
-  );
+  ) =>
+      LoggingMessageNotificationParams(
+        level: LoggingLevel.values.byName(json['level'] as String),
+        logger: json['logger'] as String?,
+        data: json['data'],
+      );
 
   Map<String, dynamic> toJson() => {
-    'level': level.name,
-    if (logger != null) 'logger': logger,
-    'data': data,
-  };
+        'level': level.name,
+        if (logger != null) 'logger': logger,
+        'data': data,
+      };
 }
 
 /// Notification of a log message passed from server to client.
@@ -2108,7 +2091,7 @@ class JsonRpcLoggingMessageNotification extends JsonRpcNotification {
   final LoggingMessageNotificationParams logParams;
 
   JsonRpcLoggingMessageNotification({required this.logParams, super.meta})
-    : super(method: "notifications/message", params: logParams.toJson());
+      : super(method: "notifications/message", params: logParams.toJson());
 
   factory JsonRpcLoggingMessageNotification.fromJson(
     Map<String, dynamic> json,
@@ -2141,9 +2124,9 @@ class ModelHint {
   }
 
   Map<String, dynamic> toJson() => {
-    if (name != null) 'name': name,
-    ...additionalProperties,
-  };
+        if (name != null) 'name': name,
+        ...additionalProperties,
+      };
 }
 
 /// Server's preferences for model selection requested during sampling.
@@ -2169,27 +2152,26 @@ class ModelPreferences {
     this.speedPriority,
     this.intelligencePriority,
     this.additionalProperties = const {},
-  }) : assert(costPriority == null || (costPriority >= 0 && costPriority <= 1)),
-       assert(
-         speedPriority == null || (speedPriority >= 0 && speedPriority <= 1),
-       ),
-       assert(
-         intelligencePriority == null ||
-             (intelligencePriority >= 0 && intelligencePriority <= 1),
-       );
+  })  : assert(
+            costPriority == null || (costPriority >= 0 && costPriority <= 1)),
+        assert(
+          speedPriority == null || (speedPriority >= 0 && speedPriority <= 1),
+        ),
+        assert(
+          intelligencePriority == null ||
+              (intelligencePriority >= 0 && intelligencePriority <= 1),
+        );
 
   factory ModelPreferences.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('hints')
-          ..remove('costPriority')
-          ..remove('speedPriority')
-          ..remove('intelligencePriority');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('hints')
+      ..remove('costPriority')
+      ..remove('speedPriority')
+      ..remove('intelligencePriority');
     return ModelPreferences(
-      hints:
-          (json['hints'] as List<dynamic>?)
-              ?.map((h) => ModelHint.fromJson(h as Map<String, dynamic>))
-              .toList(),
+      hints: (json['hints'] as List<dynamic>?)
+          ?.map((h) => ModelHint.fromJson(h as Map<String, dynamic>))
+          .toList(),
       costPriority: (json['costPriority'] as num?)?.toDouble(),
       speedPriority: (json['speedPriority'] as num?)?.toDouble(),
       intelligencePriority: (json['intelligencePriority'] as num?)?.toDouble(),
@@ -2198,13 +2180,13 @@ class ModelPreferences {
   }
 
   Map<String, dynamic> toJson() => {
-    if (hints != null) 'hints': hints!.map((h) => h.toJson()).toList(),
-    if (costPriority != null) 'costPriority': costPriority,
-    if (speedPriority != null) 'speedPriority': speedPriority,
-    if (intelligencePriority != null)
-      'intelligencePriority': intelligencePriority,
-    ...additionalProperties,
-  };
+        if (hints != null) 'hints': hints!.map((h) => h.toJson()).toList(),
+        if (costPriority != null) 'costPriority': costPriority,
+        if (speedPriority != null) 'speedPriority': speedPriority,
+        if (intelligencePriority != null)
+          'intelligencePriority': intelligencePriority,
+        ...additionalProperties,
+      };
 }
 
 /// Represents content parts within sampling messages.
@@ -2226,12 +2208,12 @@ sealed class SamplingContent {
 
   /// Converts to JSON.
   Map<String, dynamic> toJson() => {
-    'type': type,
-    ...switch (this) {
-      SamplingTextContent c => {'text': c.text},
-      SamplingImageContent c => {'data': c.data, 'mimeType': c.mimeType},
-    },
-  };
+        'type': type,
+        ...switch (this) {
+          SamplingTextContent c => {'text': c.text},
+          SamplingImageContent c => {'data': c.data, 'mimeType': c.mimeType},
+        },
+      };
 }
 
 /// Text content for sampling messages.
@@ -2254,7 +2236,7 @@ class SamplingImageContent extends SamplingContent {
   final String mimeType;
 
   const SamplingImageContent({required this.data, required this.mimeType})
-    : super(type: 'image');
+      : super(type: 'image');
 
   factory SamplingImageContent.fromJson(Map<String, dynamic> json) =>
       SamplingImageContent(
@@ -2284,10 +2266,9 @@ class SamplingMessage {
   });
 
   factory SamplingMessage.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('role')
-          ..remove('content');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('role')
+      ..remove('content');
     return SamplingMessage(
       role: SamplingMessageRole.values.byName(json['role'] as String),
       content: SamplingContent.fromJson(
@@ -2299,10 +2280,10 @@ class SamplingMessage {
 
   /// Converts to JSON.
   Map<String, dynamic> toJson() => {
-    'role': role.name,
-    'content': content.toJson(),
-    ...additionalProperties,
-  };
+        'role': role.name,
+        'content': content.toJson(),
+        ...additionalProperties,
+      };
 }
 
 /// Context inclusion options for sampling requests.
@@ -2348,8 +2329,7 @@ class CreateMessageRequestParams {
   factory CreateMessageRequestParams.fromJson(Map<String, dynamic> json) {
     final ctxStr = json['includeContext'] as String?;
     return CreateMessageRequestParams(
-      messages:
-          (json['messages'] as List<dynamic>?)
+      messages: (json['messages'] as List<dynamic>?)
               ?.map((m) => SamplingMessage.fromJson(m as Map<String, dynamic>))
               .toList() ??
           [],
@@ -2360,27 +2340,26 @@ class CreateMessageRequestParams {
       maxTokens: json['maxTokens'] as int,
       stopSequences: (json['stopSequences'] as List<dynamic>?)?.cast<String>(),
       metadata: json['metadata'] as Map<String, dynamic>?,
-      modelPreferences:
-          json['modelPreferences'] == null
-              ? null
-              : ModelPreferences.fromJson(
-                json['modelPreferences'] as Map<String, dynamic>,
-              ),
+      modelPreferences: json['modelPreferences'] == null
+          ? null
+          : ModelPreferences.fromJson(
+              json['modelPreferences'] as Map<String, dynamic>,
+            ),
     );
   }
 
   /// Converts to JSON.
   Map<String, dynamic> toJson() => {
-    'messages': messages.map((m) => m.toJson()).toList(),
-    if (systemPrompt != null) 'systemPrompt': systemPrompt,
-    if (includeContext != null) 'includeContext': includeContext!.name,
-    if (temperature != null) 'temperature': temperature,
-    'maxTokens': maxTokens,
-    if (stopSequences != null) 'stopSequences': stopSequences,
-    if (metadata != null) 'metadata': metadata,
-    if (modelPreferences != null)
-      'modelPreferences': modelPreferences!.toJson(),
-  };
+        'messages': messages.map((m) => m.toJson()).toList(),
+        if (systemPrompt != null) 'systemPrompt': systemPrompt,
+        if (includeContext != null) 'includeContext': includeContext!.name,
+        if (temperature != null) 'temperature': temperature,
+        'maxTokens': maxTokens,
+        if (stopSequences != null) 'stopSequences': stopSequences,
+        if (metadata != null) 'metadata': metadata,
+        if (modelPreferences != null)
+          'modelPreferences': modelPreferences!.toJson(),
+      };
 }
 
 /// Request sent from server to client to sample an LLM.
@@ -2439,8 +2418,10 @@ class CreateMessageResult implements BaseResultData {
     required this.content,
     this.meta,
   }) : assert(
-         stopReason == null || stopReason is StopReason || stopReason is String,
-       );
+          stopReason == null ||
+              stopReason is StopReason ||
+              stopReason is String,
+        );
 
   factory CreateMessageResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
@@ -2463,13 +2444,13 @@ class CreateMessageResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'model': model,
-    if (stopReason != null)
-      'stopReason':
-          (stopReason is StopReason) ? stopReason.toString() : stopReason,
-    'role': role.name,
-    'content': content.toJson(),
-  };
+        'model': model,
+        if (stopReason != null)
+          'stopReason':
+              (stopReason is StopReason) ? stopReason.toString() : stopReason,
+        'role': role.name,
+        'content': content.toJson(),
+      };
 }
 
 /// Sealed class representing a reference for autocompletion targets.
@@ -2492,13 +2473,13 @@ sealed class Reference {
   }
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    ...switch (this) {
-      ResourceReference r => {'uri': r.uri},
-      PromptReference p => {'name': p.name},
-    },
-    ...additionalProperties,
-  };
+        'type': type,
+        ...switch (this) {
+          ResourceReference r => {'uri': r.uri},
+          PromptReference p => {'name': p.name},
+        },
+        ...additionalProperties,
+      };
 }
 
 /// Reference to a resource or resource template URI.
@@ -2506,13 +2487,12 @@ class ResourceReference extends Reference {
   final String uri;
 
   const ResourceReference({required this.uri, super.additionalProperties})
-    : super(type: 'ref/resource');
+      : super(type: 'ref/resource');
 
   factory ResourceReference.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('type')
-          ..remove('uri');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('type')
+      ..remove('uri');
     return ResourceReference(
       uri: json['uri'] as String,
       additionalProperties: rest,
@@ -2525,13 +2505,12 @@ class PromptReference extends Reference {
   final String name;
 
   const PromptReference({required this.name, super.additionalProperties})
-    : super(type: 'ref/prompt');
+      : super(type: 'ref/prompt');
 
   factory PromptReference.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('type')
-          ..remove('name');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('type')
+      ..remove('name');
     return PromptReference(
       name: json['name'] as String,
       additionalProperties: rest,
@@ -2557,10 +2536,9 @@ class ArgumentCompletionInfo {
   });
 
   factory ArgumentCompletionInfo.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('name')
-          ..remove('value');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('name')
+      ..remove('value');
     return ArgumentCompletionInfo(
       name: json['name'] as String,
       value: json['value'] as String,
@@ -2569,10 +2547,10 @@ class ArgumentCompletionInfo {
   }
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'value': value,
-    ...additionalProperties,
-  };
+        'name': name,
+        'value': value,
+        ...additionalProperties,
+      };
 }
 
 /// Parameters for the `completion/complete` request.
@@ -2594,9 +2572,9 @@ class CompleteRequestParams {
       );
 
   Map<String, dynamic> toJson() => {
-    'ref': ref.toJson(),
-    'argument': argument.toJson(),
-  };
+        'ref': ref.toJson(),
+        'argument': argument.toJson(),
+      };
 }
 
 /// Request sent from client to ask server for completion options for an argument.
@@ -2646,11 +2624,10 @@ class CompletionResultData {
   }) : assert(values.length <= 100);
 
   factory CompletionResultData.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('values')
-          ..remove('total')
-          ..remove('hasMore');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('values')
+      ..remove('total')
+      ..remove('hasMore');
     return CompletionResultData(
       values: (json['values'] as List<dynamic>?)?.cast<String>() ?? [],
       total: json['total'] as int?,
@@ -2660,11 +2637,11 @@ class CompletionResultData {
   }
 
   Map<String, dynamic> toJson() => {
-    'values': values,
-    if (total != null) 'total': total,
-    if (hasMore != null) 'hasMore': hasMore,
-    ...additionalProperties,
-  };
+        'values': values,
+        if (total != null) 'total': total,
+        if (hasMore != null) 'hasMore': hasMore,
+        ...additionalProperties,
+      };
 }
 
 /// Result data for a successful `completion/complete` request.
@@ -2704,13 +2681,12 @@ class Root {
   final Map<String, dynamic> additionalProperties;
 
   Root({required this.uri, this.name, this.additionalProperties = const {}})
-    : assert(uri.startsWith("file://"));
+      : assert(uri.startsWith("file://"));
 
   factory Root.fromJson(Map<String, dynamic> json) {
-    final rest =
-        Map<String, dynamic>.from(json)
-          ..remove('uri')
-          ..remove('name');
+    final rest = Map<String, dynamic>.from(json)
+      ..remove('uri')
+      ..remove('name');
     return Root(
       uri: json['uri'] as String,
       name: json['name'] as String?,
@@ -2719,16 +2695,16 @@ class Root {
   }
 
   Map<String, dynamic> toJson() => {
-    'uri': uri,
-    if (name != null) 'name': name,
-    ...additionalProperties,
-  };
+        'uri': uri,
+        if (name != null) 'name': name,
+        ...additionalProperties,
+      };
 }
 
 /// Request sent from server to client to get the list of root URIs.
 class JsonRpcListRootsRequest extends JsonRpcRequest {
   const JsonRpcListRootsRequest({required super.id})
-    : super(method: "roots/list");
+      : super(method: "roots/list");
 
   factory JsonRpcListRootsRequest.fromJson(Map<String, dynamic> json) =>
       JsonRpcListRootsRequest(id: json['id']);
@@ -2748,8 +2724,7 @@ class ListRootsResult implements BaseResultData {
   factory ListRootsResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
     return ListRootsResult(
-      roots:
-          (json['roots'] as List<dynamic>?)
+      roots: (json['roots'] as List<dynamic>?)
               ?.map((r) => Root.fromJson(r as Map<String, dynamic>))
               .toList() ??
           [],
@@ -2759,18 +2734,19 @@ class ListRootsResult implements BaseResultData {
 
   @override
   Map<String, dynamic> toJson() => {
-    'roots': roots.map((r) => r.toJson()).toList(),
-  };
+        'roots': roots.map((r) => r.toJson()).toList(),
+      };
 }
 
 /// Notification from client indicating the list of roots has changed.
 class JsonRpcRootsListChangedNotification extends JsonRpcNotification {
   const JsonRpcRootsListChangedNotification()
-    : super(method: "notifications/roots/list_changed");
+      : super(method: "notifications/roots/list_changed");
 
   factory JsonRpcRootsListChangedNotification.fromJson(
     Map<String, dynamic> json,
-  ) => const JsonRpcRootsListChangedNotification();
+  ) =>
+      const JsonRpcRootsListChangedNotification();
 }
 
 /// Custom error class for MCP specific errors.

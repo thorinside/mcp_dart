@@ -83,9 +83,8 @@ void main() async {
         );
       }
 
-      final formattedAlerts = features
-          .map((feature) => formatAlert(feature))
-          .join("\n");
+      final formattedAlerts =
+          features.map((feature) => formatAlert(feature)).join("\n");
       final alertsText = "Active alerts for $state:\n\n$formattedAlerts";
 
       return CallToolResult(content: [TextContent(text: alertsText)]);
@@ -155,18 +154,16 @@ void main() async {
         );
       }
 
-      final formattedForecast = periods
-          .map((period) {
-            final periodMap = period as Map<String, dynamic>;
-            return [
-              "${periodMap['name'] ?? 'Unknown'}:",
-              "Temperature: ${periodMap['temperature'] ?? 'Unknown'}°${periodMap['temperatureUnit'] ?? 'F'}",
-              "Wind: ${periodMap['windSpeed'] ?? 'Unknown'} ${periodMap['windDirection'] ?? ''}",
-              "${periodMap['shortForecast'] ?? 'No forecast available'}",
-              "---",
-            ].join("\n");
-          })
-          .join("\n");
+      final formattedForecast = periods.map((period) {
+        final periodMap = period as Map<String, dynamic>;
+        return [
+          "${periodMap['name'] ?? 'Unknown'}:",
+          "Temperature: ${periodMap['temperature'] ?? 'Unknown'}°${periodMap['temperatureUnit'] ?? 'F'}",
+          "Wind: ${periodMap['windSpeed'] ?? 'Unknown'} ${periodMap['windDirection'] ?? ''}",
+          "${periodMap['shortForecast'] ?? 'No forecast available'}",
+          "---",
+        ].join("\n");
+      }).join("\n");
 
       final forecastText =
           "Forecast for $latitude, $longitude:\n\n$formattedForecast";

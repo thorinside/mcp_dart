@@ -8,8 +8,8 @@ const int maxVariableLength = 1000000;
 const int maxTemplateExpressions = 10000;
 
 /// Type definition for variables used in template expansion.
-typedef TemplateVariables =
-    Map<String, dynamic /* String | List<String> | Map<String, String> */>;
+typedef TemplateVariables
+    = Map<String, dynamic /* String | List<String> | Map<String, String> */ >;
 
 /// Base class for different parts parsed from a URI template string.
 sealed class _UriTemplatePart {
@@ -250,13 +250,12 @@ class UriTemplateExpander {
 
       List<String?>? processList(List listValue) {
         if (listValue.isEmpty) return null;
-        final processed =
-            listValue
-                .where((item) => item != null)
-                .map((item) => prefixValue(item.toString()))
-                .where((s) => s != null)
-                .map((s) => _encodeValue(s!, part.operator))
-                .toList();
+        final processed = listValue
+            .where((item) => item != null)
+            .map((item) => prefixValue(item.toString()))
+            .where((s) => s != null)
+            .map((s) => _encodeValue(s!, part.operator))
+            .toList();
         return processed.isEmpty ? null : processed;
       }
 

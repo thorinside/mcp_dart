@@ -97,20 +97,18 @@ abstract class Protocol {
 
   /// Handlers for incoming requests, mapped by method name.
   final Map<
-    String,
-    Future<BaseResultData> Function(
-      JsonRpcRequest request,
-      RequestHandlerExtra extra,
-    )
-  >
-  _requestHandlers = {};
+      String,
+      Future<BaseResultData> Function(
+        JsonRpcRequest request,
+        RequestHandlerExtra extra,
+      )> _requestHandlers = {};
 
   /// Tracks [AbortController] instances for cancellable incoming requests.
   final Map<RequestId, AbortController> _requestHandlerAbortControllers = {};
 
   /// Handlers for incoming notifications, mapped by method name.
   final Map<String, Future<void> Function(JsonRpcNotification notification)>
-  _notificationHandlers = {};
+      _notificationHandlers = {};
 
   /// Completers for outgoing requests awaiting a response, mapped by request ID.
   final Map<int, Completer<JsonRpcResponse>> _responseCompleters = {};
@@ -135,18 +133,18 @@ abstract class Protocol {
 
   /// Fallback handler for incoming request methods without a specific handler.
   Future<BaseResultData> Function(JsonRpcRequest request)?
-  fallbackRequestHandler;
+      fallbackRequestHandler;
 
   /// Fallback handler for incoming notification methods without a specific handler.
   Future<void> Function(JsonRpcNotification notification)?
-  fallbackNotificationHandler;
+      fallbackNotificationHandler;
 
   /// Initializes the protocol handler with optional configuration.
   ///
   /// Registers default handlers for standard notifications like cancellation
   /// and progress, and a default handler for ping requests.
   Protocol(ProtocolOptions? options)
-    : _options = options ?? const ProtocolOptions() {
+      : _options = options ?? const ProtocolOptions() {
     setNotificationHandler<JsonRpcCancelledNotification>(
       "notifications/cancelled",
       (notification) async {
@@ -360,8 +358,7 @@ abstract class Protocol {
 
   /// Handles incoming JSON-RPC notifications.
   void _onnotification(JsonRpcNotification notification) {
-    final handler =
-        _notificationHandlers[notification.method] ??
+    final handler = _notificationHandlers[notification.method] ??
         fallbackNotificationHandler;
     if (handler == null) {
       return;
@@ -401,55 +398,51 @@ abstract class Protocol {
       sessionId: _transport?.sessionId,
     );
 
-    Future.microtask(() => handler(request, extra))
-        .then(
-          (result) async {
-            if (abortController.signal.aborted) {
-              return;
-            }
-            return _transport?.send(
-              JsonRpcResponse(
-                id: request.id,
-                result: result.toJson(),
-                meta: result.meta,
-              ),
-            );
-          },
-          onError: (error, stackTrace) {
-            if (abortController.signal.aborted) {
-              return Future.value(null);
-            }
+    Future.microtask(() => handler(request, extra)).then(
+      (result) async {
+        if (abortController.signal.aborted) {
+          return;
+        }
+        return _transport?.send(
+          JsonRpcResponse(
+            id: request.id,
+            result: result.toJson(),
+            meta: result.meta,
+          ),
+        );
+      },
+      onError: (error, stackTrace) {
+        if (abortController.signal.aborted) {
+          return Future.value(null);
+        }
 
-            int code = ErrorCode.internalError.value;
-            String message =
-                "Internal server error processing ${request.method}";
-            dynamic data;
+        int code = ErrorCode.internalError.value;
+        String message = "Internal server error processing ${request.method}";
+        dynamic data;
 
-            if (error is McpError) {
-              code = error.code;
-              message = error.message;
-              data = error.data;
-            } else if (error is Error) {
-              message = error.toString();
-            } else {
-              message = "Unknown error processing ${request.method}";
-              data = error?.toString();
-            }
+        if (error is McpError) {
+          code = error.code;
+          message = error.message;
+          data = error.data;
+        } else if (error is Error) {
+          message = error.toString();
+        } else {
+          message = "Unknown error processing ${request.method}";
+          data = error?.toString();
+        }
 
-            return _sendErrorResponse(request.id, code, message, data);
-          },
-        )
-        .catchError((sendError) {
-          _onerror(
-            StateError(
-              "Failed to send response/error for request ${request.id}: $sendError",
-            ),
-          );
-          return null;
-        })
-        .whenComplete(() {
-          _requestHandlerAbortControllers.remove(request.id);
-        });
+        return _sendErrorResponse(request.id, code, message, data);
+      },
+    ).catchError((sendError) {
+      _onerror(
+        StateError(
+          "Failed to send response/error for request ${request.id}: $sendError",
+        ),
+      );
+      return null;
+    }).whenComplete(() {
+      _requestHandlerAbortControllers.remove(request.id);
+    });
   }
 
   /// Handles incoming progress notifications.
@@ -731,27 +724,24 @@ abstract class Protocol {
       return null;
     });
 
-    return completer.future
-        .then((response) {
-          try {
-            return resultFactory(response.result);
-          } catch (e, s) {
-            throw McpError(
-              ErrorCode.internalError.value,
-              "Failed to parse result for ${requestData.method}",
-              "$e\n$s",
-            );
-          }
-        })
-        .whenComplete(() {
-          abortSubscription?.cancel();
-          _responseCompleters.remove(messageId);
-          _responseErrorHandlers.remove(messageId);
-          _progressHandlers.remove(messageId);
-        })
-        .catchError((error) {
-          throw capturedError ?? error;
-        });
+    return completer.future.then((response) {
+      try {
+        return resultFactory(response.result);
+      } catch (e, s) {
+        throw McpError(
+          ErrorCode.internalError.value,
+          "Failed to parse result for ${requestData.method}",
+          "$e\n$s",
+        );
+      }
+    }).whenComplete(() {
+      abortSubscription?.cancel();
+      _responseCompleters.remove(messageId);
+      _responseErrorHandlers.remove(messageId);
+      _progressHandlers.remove(messageId);
+    }).catchError((error) {
+      throw capturedError ?? error;
+    });
   }
 
   /// Sends a notification, which is a one-way message that does not expect a response.
@@ -780,13 +770,12 @@ abstract class Protocol {
   void setRequestHandler<ReqT extends JsonRpcRequest>(
     String method,
     Future<BaseResultData> Function(ReqT request, RequestHandlerExtra extra)
-    handler,
+        handler,
     ReqT Function(
       RequestId id,
       Map<String, dynamic>? params,
       Map<String, dynamic>? meta,
-    )
-    requestFactory,
+    ) requestFactory,
   ) {
     assertRequestHandlerCapability(method);
 
@@ -830,7 +819,7 @@ abstract class Protocol {
     String method,
     Future<void> Function(NotifT notification) handler,
     NotifT Function(Map<String, dynamic>? params, Map<String, dynamic>? meta)
-    notificationFactory,
+        notificationFactory,
   ) {
     _notificationHandlers[method] = (jsonRpcNotification) async {
       try {

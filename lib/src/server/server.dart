@@ -36,9 +36,9 @@ class Server extends Protocol {
 
   /// Initializes this server with its implementation details and options.
   Server(this._serverInfo, {ServerOptions? options})
-    : _capabilities = options?.capabilities ?? const ServerCapabilities(),
-      _instructions = options?.instructions,
-      super(options) {
+      : _capabilities = options?.capabilities ?? const ServerCapabilities(),
+        _instructions = options?.instructions,
+        super(options) {
     setRequestHandler<JsonRpcInitializeRequest>(
       "initialize",
       (request, extra) async => _oninitialize(request.initParams),
@@ -83,10 +83,9 @@ class Server extends Protocol {
     _clientCapabilities = params.capabilities;
     _clientVersion = params.clientInfo;
 
-    final protocolVersion =
-        supportedProtocolVersions.contains(requestedVersion)
-            ? requestedVersion
-            : latestProtocolVersion;
+    final protocolVersion = supportedProtocolVersions.contains(requestedVersion)
+        ? requestedVersion
+        : latestProtocolVersion;
 
     return InitializeResult(
       protocolVersion: protocolVersion,

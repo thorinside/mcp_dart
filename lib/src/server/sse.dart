@@ -58,8 +58,8 @@ class SseServerTransport implements Transport {
   SseServerTransport({
     required HttpResponse response,
     required String messageEndpointPath,
-  }) : _sseResponse = response,
-       _messageEndpointPath = messageEndpointPath {
+  })  : _sseResponse = response,
+        _messageEndpointPath = messageEndpointPath {
     _sessionId = _generateUUID();
   }
 
@@ -178,17 +178,16 @@ class SseServerTransport implements Transport {
       if (parsedBody != null) {
         messageJson = parsedBody;
       } else {
-        final bodyBytes = await request
-            .fold<BytesBuilder>(BytesBuilder(), (builder, chunk) {
-              builder.add(chunk);
-              if (builder.length > _maximumMessageSize) {
-                throw HttpException(
-                  "Message size exceeds limit of $_maximumMessageSize bytes.",
-                );
-              }
-              return builder;
-            })
-            .then((builder) => builder.toBytes());
+        final bodyBytes =
+            await request.fold<BytesBuilder>(BytesBuilder(), (builder, chunk) {
+          builder.add(chunk);
+          if (builder.length > _maximumMessageSize) {
+            throw HttpException(
+              "Message size exceeds limit of $_maximumMessageSize bytes.",
+            );
+          }
+          return builder;
+        }).then((builder) => builder.toBytes());
 
         final encoding =
             Encoding.getByName(contentType.parameters['charset']) ?? utf8;

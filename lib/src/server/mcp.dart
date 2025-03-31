@@ -19,17 +19,15 @@ class CompletableField {
   const CompletableField({required this.def, this.underlyingType = String});
 }
 
-typedef ToolCallback =
-    FutureOr<CallToolResult> Function({
-      Map<String, dynamic>? args,
-      RequestHandlerExtra? extra,
-    });
+typedef ToolCallback = FutureOr<CallToolResult> Function({
+  Map<String, dynamic>? args,
+  RequestHandlerExtra? extra,
+});
 
-typedef PromptCallback =
-    FutureOr<GetPromptResult> Function(
-      Map<String, dynamic>? args,
-      RequestHandlerExtra? extra,
-    );
+typedef PromptCallback = FutureOr<GetPromptResult> Function(
+  Map<String, dynamic>? args,
+  RequestHandlerExtra? extra,
+);
 
 class PromptArgumentDefinition {
   final String? description;
@@ -45,28 +43,26 @@ class PromptArgumentDefinition {
   });
 }
 
-typedef ResourceMetadata =
-    ({
-      String? description,
-      String? mimeType,
-      Map<String, dynamic> additionalProperties,
-    });
+typedef ResourceMetadata = ({
+  String? description,
+  String? mimeType,
+  Map<String, dynamic> additionalProperties,
+});
 
-typedef ListResourcesCallback =
-    FutureOr<ListResourcesResult> Function(RequestHandlerExtra extra);
+typedef ListResourcesCallback = FutureOr<ListResourcesResult> Function(
+    RequestHandlerExtra extra);
 
-typedef ReadResourceCallback =
-    FutureOr<ReadResourceResult> Function(Uri uri, RequestHandlerExtra extra);
+typedef ReadResourceCallback = FutureOr<ReadResourceResult> Function(
+    Uri uri, RequestHandlerExtra extra);
 
-typedef ReadResourceTemplateCallback =
-    FutureOr<ReadResourceResult> Function(
-      Uri uri,
-      TemplateVariables variables,
-      RequestHandlerExtra extra,
-    );
+typedef ReadResourceTemplateCallback = FutureOr<ReadResourceResult> Function(
+  Uri uri,
+  TemplateVariables variables,
+  RequestHandlerExtra extra,
+);
 
-typedef CompleteResourceTemplateCallback =
-    FutureOr<List<String>> Function(String currentValue);
+typedef CompleteResourceTemplateCallback = FutureOr<List<String>> Function(
+    String currentValue);
 
 class ResourceTemplateRegistration {
   final UriTemplateExpander uriTemplate;
@@ -113,14 +109,13 @@ class _RegisteredPrompt<Args> {
   });
 
   Prompt toPrompt(String name) {
-    final promptArgs =
-        argsSchemaDefinition?.entries.map((entry) {
-          return PromptArgument(
-            name: entry.key,
-            description: entry.value.description,
-            required: entry.value.required,
-          );
-        }).toList();
+    final promptArgs = argsSchemaDefinition?.entries.map((entry) {
+      return PromptArgument(
+        name: entry.key,
+        description: entry.value.description,
+        required: entry.value.required,
+      );
+    }).toList();
     return Prompt(name: name, description: description, arguments: promptArgs);
   }
 }
@@ -264,13 +259,13 @@ class McpServer {
       "completion/complete",
       (request, extra) async => switch (request.completeParams.ref) {
         ResourceReference r => _handleResourceCompletion(
-          r,
-          request.completeParams.argument,
-        ),
+            r,
+            request.completeParams.argument,
+          ),
         PromptReference p => _handlePromptCompletion(
-          p,
-          request.completeParams.argument,
-        ),
+            p,
+            request.completeParams.argument,
+          ),
       },
       (id, params, meta) => JsonRpcCompleteRequest.fromJson({
         'id': id,
@@ -305,12 +300,10 @@ class McpServer {
   ) async {
     final templateEntry = _registeredResourceTemplates.entries.firstWhere(
       (e) => e.value.resourceTemplate.uriTemplate.toString() == ref.uri,
-      orElse:
-          () =>
-              throw McpError(
-                ErrorCode.invalidParams.value,
-                "Resource template URI '${ref.uri}' not found for completion",
-              ),
+      orElse: () => throw McpError(
+        ErrorCode.invalidParams.value,
+        "Resource template URI '${ref.uri}' not found for completion",
+      ),
     );
     final completer = templateEntry.value.resourceTemplate
         .getCompletionCallback(argInfo.name);
@@ -337,36 +330,35 @@ class McpServer {
     server.setRequestHandler<JsonRpcListResourcesRequest>(
       "resources/list",
       (request, extra) async {
-        final fixed =
-            _registeredResources.entries
-                .map((e) => e.value.toResource(e.key))
-                .toList();
+        final fixed = _registeredResources.entries
+            .map((e) => e.value.toResource(e.key))
+            .toList();
         final templateFutures = _registeredResourceTemplates.values
             .where((t) => t.resourceTemplate.listCallback != null)
             .map((t) async {
-              try {
-                final result = await Future.value(
-                  t.resourceTemplate.listCallback!(extra),
-                );
-                return result.resources
-                    .map(
-                      (r) => Resource(
-                        uri: r.uri,
-                        name: r.name,
-                        description: r.description ?? t.metadata?.description,
-                        mimeType: r.mimeType ?? t.metadata?.mimeType,
-                        additionalProperties: {
-                          ...?t.metadata?.additionalProperties,
-                          ...r.additionalProperties,
-                        },
-                      ),
-                    )
-                    .toList();
-              } catch (e) {
-                print("Error listing resources for template: $e");
-                return <Resource>[];
-              }
-            });
+          try {
+            final result = await Future.value(
+              t.resourceTemplate.listCallback!(extra),
+            );
+            return result.resources
+                .map(
+                  (r) => Resource(
+                    uri: r.uri,
+                    name: r.name,
+                    description: r.description ?? t.metadata?.description,
+                    mimeType: r.mimeType ?? t.metadata?.mimeType,
+                    additionalProperties: {
+                      ...?t.metadata?.additionalProperties,
+                      ...r.additionalProperties,
+                    },
+                  ),
+                )
+                .toList();
+          } catch (e) {
+            print("Error listing resources for template: $e");
+            return <Resource>[];
+          }
+        });
         final templateLists = await Future.wait(templateFutures);
         final templates = templateLists.expand((list) => list).toList();
         return ListResourcesResult(resources: [...fixed, ...templates]);
@@ -381,10 +373,9 @@ class McpServer {
     server.setRequestHandler<JsonRpcListResourceTemplatesRequest>(
       "resources/templates/list",
       (request, extra) async => ListResourceTemplatesResult(
-        resourceTemplates:
-            _registeredResourceTemplates.entries
-                .map((e) => e.value.toResourceTemplate(e.key))
-                .toList(),
+        resourceTemplates: _registeredResourceTemplates.entries
+            .map((e) => e.value.toResourceTemplate(e.key))
+            .toList(),
       ),
       (id, params, meta) => JsonRpcListResourceTemplatesRequest.fromJson({
         'id': id,
@@ -443,10 +434,9 @@ class McpServer {
     server.setRequestHandler<JsonRpcListPromptsRequest>(
       "prompts/list",
       (request, extra) async => ListPromptsResult(
-        prompts:
-            _registeredPrompts.entries
-                .map((e) => e.value.toPrompt(e.key))
-                .toList(),
+        prompts: _registeredPrompts.entries
+            .map((e) => e.value.toPrompt(e.key))
+            .toList(),
       ),
       (id, params, meta) => JsonRpcListPromptsRequest.fromJson({
         'id': id,
@@ -511,9 +501,8 @@ class McpServer {
       if (value == null) {
         if (def.required) errors.add("Missing required '$name'");
       } else {
-        bool typeOk =
-            (value.runtimeType == def.type ||
-                (def.type == num && value is num));
+        bool typeOk = (value.runtimeType == def.type ||
+            (def.type == num && value is num));
         if (!typeOk) {
           errors.add(
             "Invalid type for '$name'. Expected ${def.type}, got ${value.runtimeType}",
@@ -617,6 +606,6 @@ class McpServer {
   }
 
   CompleteResult _emptyCompletionResult() => CompleteResult(
-    completion: CompletionResultData(values: [], hasMore: false),
-  );
+        completion: CompletionResultData(values: [], hasMore: false),
+      );
 }

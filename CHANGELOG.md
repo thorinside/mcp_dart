@@ -1,4 +1,6 @@
-## Unreleased
+## 0.3.6
+
+- Improve pub.dev points
 
 ## 0.3.5
 

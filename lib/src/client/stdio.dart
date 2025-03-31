@@ -73,7 +73,7 @@ class StdioClientTransport implements Transport {
   /// Subscriptions to the process's stdout and stderr streams.
   StreamSubscription<List<int>>? _stdoutSubscription;
   StreamSubscription<List<int>>?
-  _stderrSubscription; // Only used if stderrMode is pipe
+      _stderrSubscription; // Only used if stderrMode is pipe
 
   /// Callback for when the connection (process) is closed.
   @override
@@ -111,12 +111,9 @@ class StdioClientTransport implements Transport {
     }
     _started = true;
 
-    final mode =
-        (_serverParams.stderrMode == io.ProcessStartMode.normal)
-            ? io
-                .ProcessStartMode
-                .normal // Use normal for pipe access
-            : io.ProcessStartMode.inheritStdio; // More direct inheritance
+    final mode = (_serverParams.stderrMode == io.ProcessStartMode.normal)
+        ? io.ProcessStartMode.normal // Use normal for pipe access
+        : io.ProcessStartMode.inheritStdio; // More direct inheritance
 
     try {
       // Start the process.
@@ -204,10 +201,9 @@ class StdioClientTransport implements Transport {
 
   /// Internal handler for errors on process stdout/stderr streams.
   void _onStreamError(dynamic error, StackTrace stackTrace) {
-    final Error streamError =
-        (error is Error)
-            ? error
-            : StateError("Process stream error: $error\n$stackTrace");
+    final Error streamError = (error is Error)
+        ? error
+        : StateError("Process stream error: $error\n$stackTrace");
     try {
       onerror?.call(streamError);
     } catch (e) {
@@ -230,10 +226,9 @@ class StdioClientTransport implements Transport {
           onerror?.call(StateError("Error in onmessage handler: $e"));
         }
       } catch (error) {
-        final Error parseError =
-            (error is Error)
-                ? error
-                : StateError("Message parsing error: $error");
+        final Error parseError = (error is Error)
+            ? error
+            : StateError("Message parsing error: $error");
         try {
           onerror?.call(parseError);
         } catch (e) {
@@ -262,10 +257,9 @@ class StdioClientTransport implements Transport {
   /// Internal handler for errors retrieving the process exit code.
   void _onProcessExitError(dynamic error, StackTrace stackTrace) {
     print("StdioClientTransport: Error waiting for process exit: $error");
-    final Error exitError =
-        (error is Error)
-            ? error
-            : StateError("Process exit error: $error\n$stackTrace");
+    final Error exitError = (error is Error)
+        ? error
+        : StateError("Process exit error: $error\n$stackTrace");
     try {
       onerror?.call(exitError);
     } catch (e) {
@@ -368,10 +362,9 @@ class StdioClientTransport implements Transport {
       await currentProcess.stdin.flush();
     } catch (error, stackTrace) {
       print("StdioClientTransport: Error writing to process stdin: $error");
-      final Error sendError =
-          (error is Error)
-              ? error
-              : StateError("Process stdin write error: $error\n$stackTrace");
+      final Error sendError = (error is Error)
+          ? error
+          : StateError("Process stdin write error: $error\n$stackTrace");
       try {
         onerror?.call(sendError);
       } catch (e) {

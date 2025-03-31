@@ -28,8 +28,8 @@ class Client extends Protocol {
   /// - [clientInfo]: Information about this client's name and version.
   /// - [options]: Optional configuration settings including client capabilities.
   Client(this._clientInfo, {ClientOptions? options})
-    : _capabilities = options?.capabilities ?? const ClientCapabilities(),
-      super(options);
+      : _capabilities = options?.capabilities ?? const ClientCapabilities(),
+        super(options);
 
   /// Registers new capabilities for this client.
   ///

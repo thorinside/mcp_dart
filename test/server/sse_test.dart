@@ -35,8 +35,7 @@ void main() {
           // print("Test Server: SSE Transport closed for session $sessionId");
           activeTransports.remove(sessionId);
         };
-        transport.onerror =
-            (e) => print(
+        transport.onerror = (e) => print(
               "Test Server: Transport error for session $sessionId: $e",
             );
 
@@ -121,22 +120,22 @@ void main() {
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(
-            (line) {
-              outputLines.add(line);
-              // Check for the endpoint event data
-              if (line.startsWith('data: /messages_test?sessionId=')) {
-                if (!completer.isCompleted) completer.complete(outputLines);
-              }
-            },
-            onDone: () {
-              if (!completer.isCompleted) completer.complete(outputLines);
-              client.close();
-            },
-            onError: (e) {
-              if (!completer.isCompleted) completer.completeError(e);
-              client.close();
-            },
-          );
+        (line) {
+          outputLines.add(line);
+          // Check for the endpoint event data
+          if (line.startsWith('data: /messages_test?sessionId=')) {
+            if (!completer.isCompleted) completer.complete(outputLines);
+          }
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete(outputLines);
+          client.close();
+        },
+        onError: (e) {
+          if (!completer.isCompleted) completer.completeError(e);
+          client.close();
+        },
+      );
 
       // Wait for the endpoint event or timeout
       List<String> receivedLines = await completer.future;
@@ -171,9 +170,7 @@ void main() {
     request.headers.set(HttpHeaders.acceptHeader, 'text/event-stream');
     final response = await request.close();
 
-    responseSub = response
-        .transform(utf8.decoder)
-        .listen(
+    responseSub = response.transform(utf8.decoder).listen(
           (dataChunk) {
             receivedData += dataChunk;
             // Check if we received the specific message event
