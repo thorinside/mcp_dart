@@ -32,12 +32,3 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
-
-      - name: Post coverage comment to PR
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: Code Coverage Report
-          message: |
-            ```plaintext
-            $(curl -s https://codecov.io/github/${{ github.repository }}/commit/${{ github.sha }}/coverage)
-            ```
