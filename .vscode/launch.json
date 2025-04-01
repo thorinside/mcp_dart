@@ -12,7 +12,8 @@
       "args": ["dart", "../server_stdio.dart"],
       "env": {
         "ANTHROPIC_API_KEY": "YOUR_API_KEY"
-      }
+      },
+      "console": "terminal"
     },
     {
       "name": "gemini-client-example",
