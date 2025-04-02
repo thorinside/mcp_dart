@@ -10,15 +10,18 @@ extension SchemaExtension on Schema {
   ///
   /// [json] is the JSON map representing the schema.
   /// Throws [UnsupportedError] if the schema type is unsupported.
-  static Schema fromJson(Map<String, dynamic> json) {
+  static Schema? fromJson(Map<String, dynamic> json) {
     return switch (json['type']) {
       'object' =>
         json['properties'] != null
-            ? Schema.object(
-              properties: (json['properties'] as Map<String, dynamic>).map(
-                (key, value) => MapEntry(key, SchemaExtension.fromJson(value)),
-              ),
-            )
+            ? json['properties'].isEmpty
+                ? null
+                : Schema.object(
+                  properties: (json['properties'] as Map<String, dynamic>).map(
+                    (key, value) =>
+                        MapEntry(key, SchemaExtension.fromJson(value)!),
+                  ),
+                )
             : throw UnsupportedError(
               "Unsupported schema type: ${json['type']}",
             ),
@@ -33,7 +36,7 @@ extension SchemaExtension on Schema {
       'boolean' => Schema.boolean(description: json['description']),
       'array' =>
         json['items'] != null
-            ? Schema.array(items: SchemaExtension.fromJson(json['items']))
+            ? Schema.array(items: SchemaExtension.fromJson(json['items'])!)
             : throw UnsupportedError(
               "Unsupported schema type: ${json['type']}",
             ),
