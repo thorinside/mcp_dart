@@ -9,10 +9,10 @@ import 'package:mcp_dart/src/types.dart';
 
 class IOStreamClientTransport implements Transport {
   /// The input stream to read from (typically comes from another process stdout)
-  final Stream<List<int>> _stdin;
+  final Stream<List<int>> stdin;
 
   /// The output sink to write to (typically goes to another process stdin)
-  final StreamSink<List<int>> _stdout;
+  final StreamSink<List<int>> stdout;
 
   /// Buffer for incoming data from the stream
   final ReadBuffer _readBuffer = ReadBuffer();
@@ -46,7 +46,10 @@ class IOStreamClientTransport implements Transport {
   ///
   /// [stdin] is the stream to read from (typically from another process's stdout).
   /// [stdout] is the sink to write to (typically to another process's stdin).
-  IOStreamClientTransport(this._stdin, this._stdout);
+  IOStreamClientTransport({
+    required this.stdin,
+    required this.stdout,
+  });
 
   /// Starts the transport by setting up listeners on the input stream.
   ///
@@ -64,7 +67,7 @@ class IOStreamClientTransport implements Transport {
 
     try {
       // Listen to stdin for messages
-      _stdinSubscription = _stdin.listen(
+      _stdinSubscription = stdin.listen(
         _onStdinData,
         onError: _onStreamError,
         onDone: _onStdinDone,
@@ -159,7 +162,7 @@ class IOStreamClientTransport implements Transport {
 
     _readBuffer.clear();
 
-    // Note: We do not close _stdout as it may be managed externally
+    // Note: We do not close stdout as it is managed externally
 
     // Invoke the onclose callback
     try {
@@ -183,7 +186,7 @@ class IOStreamClientTransport implements Transport {
 
     try {
       final jsonString = jsonEncode("${message.toJson()}\n");
-      _stdout.add(utf8.encode(jsonString));
+      stdout.add(utf8.encode(jsonString));
       // No need to flush as StreamSink should handle this
     } catch (error, stackTrace) {
       print("IOStreamClientTransport: Error writing to output stream: $error");
