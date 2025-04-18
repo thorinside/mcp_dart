@@ -1,3 +1,7 @@
+## 0.3.7
+
+- Add iostream transport to connect a client and server via dart streams in a single application
+
 ## 0.3.6
 
 - Improve pub.dev points
