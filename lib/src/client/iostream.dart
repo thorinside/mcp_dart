@@ -8,17 +8,17 @@ import 'package:mcp_dart/src/types.dart';
 
 
 class IOStreamClientTransport implements Transport {
-  /// The input stream to read from (typically comes from another process stdout)
-  final Stream<List<int>> stdin;
+  /// The input stream to read from.
+  final Stream<List<int>> stream;
 
-  /// The output sink to write to (typically goes to another process stdin)
-  final StreamSink<List<int>> stdout;
+  /// The output sink to write to.
+  final StreamSink<List<int>> sink;
 
   /// Buffer for incoming data from the stream
   final ReadBuffer _readBuffer = ReadBuffer();
 
   /// Subscription to the input stream
-  StreamSubscription<List<int>>? _stdinSubscription;
+  StreamSubscription<List<int>>? _streamSubscription;
 
   /// Flag to prevent multiple starts
   bool _started = false;
@@ -44,11 +44,11 @@ class IOStreamClientTransport implements Transport {
 
   /// Creates a direct client transport with the provided streams.
   ///
-  /// [stdin] is the stream to read from (typically from another process's stdout).
-  /// [stdout] is the sink to write to (typically to another process's stdin).
+  /// [stream] is the stream to read from.
+  /// [sink] is the sink to write to.
   IOStreamClientTransport({
-    required this.stdin,
-    required this.stdout,
+    required this.stream,
+    required this.sink,
   });
 
   /// Starts the transport by setting up listeners on the input stream.
@@ -66,11 +66,11 @@ class IOStreamClientTransport implements Transport {
     _closed = false;
 
     try {
-      // Listen to stdin for messages
-      _stdinSubscription = stdin.listen(
-        _onStdinData,
+      // Listen to input stream for messages
+      _streamSubscription = stream.listen(
+        _onStreamData,
         onError: _onStreamError,
-        onDone: _onStdinDone,
+        onDone: _onStreamDone,
         cancelOnError: false,
       );
 
@@ -91,14 +91,14 @@ class IOStreamClientTransport implements Transport {
   }
 
   /// Internal handler for data received from the input stream
-  void _onStdinData(List<int> chunk) {
+  void _onStreamData(List<int> chunk) {
     if (chunk is! Uint8List) chunk = Uint8List.fromList(chunk);
     _readBuffer.append(chunk);
     _processReadBuffer();
   }
 
   /// Internal handler for when the input stream closes
-  void _onStdinDone() {
+  void _onStreamDone() {
     print("IOStreamClientTransport: Input stream closed.");
     close(); // Close transport when input ends
   }
@@ -157,12 +157,10 @@ class IOStreamClientTransport implements Transport {
     _closed = true;
 
     // Cancel stream subscription
-    await _stdinSubscription?.cancel();
-    _stdinSubscription = null;
+    await _streamSubscription?.cancel();
+    _streamSubscription = null;
 
     _readBuffer.clear();
-
-    // Note: We do not close stdout as it is managed externally
 
     // Invoke the onclose callback
     try {
@@ -186,7 +184,7 @@ class IOStreamClientTransport implements Transport {
 
     try {
       final jsonString = jsonEncode("${message.toJson()}\n");
-      stdout.add(utf8.encode(jsonString));
+      sink.add(utf8.encode(jsonString));
       // No need to flush as StreamSink should handle this
     } catch (error, stackTrace) {
       print("IOStreamClientTransport: Error writing to output stream: $error");
