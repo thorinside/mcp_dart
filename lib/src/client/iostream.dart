@@ -183,7 +183,7 @@ class IOStreamClientTransport implements Transport {
     }
 
     try {
-      final jsonString = jsonEncode("${message.toJson()}\n");
+      final jsonString = "${jsonEncode(message.toJson())}\n";
       sink.add(utf8.encode(jsonString));
       // No need to flush as StreamSink should handle this
     } catch (error, stackTrace) {

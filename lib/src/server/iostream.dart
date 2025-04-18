@@ -176,7 +176,7 @@ class IOStreamServerTransport implements Transport {
     }
     
     try {
-      final jsonString = jsonEncode("${message.toJson()}\n");
+      final jsonString = "${jsonEncode(message.toJson())}\n";
       sink.add(utf8.encode(jsonString));
     } catch (error, stackTrace) {
       print("IOStreamServerTransport: Error writing to sink: $error");
