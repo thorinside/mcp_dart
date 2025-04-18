@@ -128,12 +128,29 @@ class GoogleMcpClient {
           "[Calling tool ${part.name} with args ${jsonEncode(part.args)}]",
         );
 
-        final toolResponseText =
-            result.content
-                .whereType<mcp_dart.TextContent>()
-                .map((c) => c.text)
-                .join();
-        finalText.add(toolResponseText);
+        for (final c in result.content) {
+          if (c is mcp_dart.TextContent) {
+            messages.add(Content.text(c.text));
+          }
+          if (c is mcp_dart.ImageContent) {
+            messages.add(Content.data(c.mimeType, base64Decode(c.data)));
+            print(c.data);
+          }
+        }
+        final finalRes = await model.generateContent(messages);
+        finalText.add(
+          finalRes.candidates.first.content.parts.map((c) {
+            if (c is TextPart) {
+              return c.text;
+            } else if (c is DataPart) {
+              return "[Image: ${c.mimeType}]";
+            } else if (c is FilePart) {
+              return "[File: ${c.uri}]";
+            } else {
+              return "[Unknown part type]";
+            }
+          }).join(),
+        );
       }
     }
 
