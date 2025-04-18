@@ -6,3 +6,4 @@ library;
 
 export './client.dart'; // Client-side implementation for MCP protocol.
 export './stdio.dart'; // Standard I/O-based client communication utilities.
+export './iostream.dart'; // In-memory transport using dart streams
