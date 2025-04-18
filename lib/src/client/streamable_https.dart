@@ -497,6 +497,16 @@ class StreamableHttpClientTransport implements Transport {
         return;
       }
 
+      // Check for authentication first - if we need auth, handle it before proceeding
+      if (_authProvider != null) {
+        final tokens = await _authProvider!.tokens();
+        if (tokens == null) {
+          // No tokens available - trigger authentication flow
+          await _authProvider!.redirectToAuthorization();
+          throw UnauthorizedError('Authentication required');
+        }
+      }
+
       final headers = await _commonHeaders();
       headers['content-type'] = 'application/json';
       headers['accept'] = 'application/json, text/event-stream';
@@ -523,13 +533,9 @@ class StreamableHttpClientTransport implements Transport {
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         if (response.statusCode == 401 && _authProvider != null) {
-          final result = await auth(_authProvider!, serverUrl: _url);
-          if (result != "AUTHORIZED") {
-            throw UnauthorizedError();
-          }
-
-          // Purposely _not_ awaited, so we don't call onerror twice
-          return send(message);
+          // Authentication failed with the server - try to refresh or redirect
+          await _authProvider!.redirectToAuthorization();
+          throw UnauthorizedError('Authentication failed with the server');
         }
 
         final text = await response.transform(utf8.decoder).join();
