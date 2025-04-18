@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:mcp_dart/src/shared/transport.dart';
+import 'package:mcp_dart/src/shared/uuid.dart';
 import 'package:mcp_dart/src/types.dart';
 
 /// Maximum size for incoming POST message bodies.
@@ -60,17 +60,7 @@ class SseServerTransport implements Transport {
     required String messageEndpointPath,
   })  : _sseResponse = response,
         _messageEndpointPath = messageEndpointPath {
-    _sessionId = _generateUUID();
-  }
-
-  /// Generates a UUID (version 4).
-  String _generateUUID() {
-    final random = Random.secure();
-    final bytes = List<int>.generate(16, (i) => random.nextInt(256));
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
-    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+    _sessionId = generateUUID();
   }
 
   /// Handles the initial SSE connection setup.
