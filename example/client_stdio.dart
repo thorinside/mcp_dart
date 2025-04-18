@@ -1,4 +1,3 @@
-// filepath: /Users/jhin.lee/Documents/personal/mcp_example/mcp_dart/example/client_stdio.dart
 import 'dart:async';
 import 'dart:io';
 
