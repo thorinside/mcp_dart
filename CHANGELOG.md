@@ -1,3 +1,8 @@
+## 0.4.0
+
+- Add support for StreamableHTTP client
+- Add support for StreamableHTTP server
+
 ## 0.3.6
 
 - Improve pub.dev points

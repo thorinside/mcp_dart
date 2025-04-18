@@ -51,7 +51,7 @@ void main() async {
 }
 ```
 
-## SSE Server
+## SSE Server (Deprecated)
 
 ```dart
 import 'dart:io';
@@ -111,8 +111,4 @@ Future<void> main() async {
 }
 ```
 
-## More Examples
-
-- [Stdio Server](server_stdio.dart)
-- [Stdio Client](client_stdio.dart)
-- [SSE Server](server_sse.dart)
+## [More Examples](https://github.com/leehack/mcp_dart/tree/main/example)

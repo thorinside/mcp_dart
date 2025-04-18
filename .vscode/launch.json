@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "client_streamable_https",
+      "type": "dart",
+      "request": "launch",
+      "program": "example/client_streamable_https.dart",
+      "console": "terminal"
+    },
+    {
       "name": "anthropic-client-example",
       "type": "dart",
       "request": "launch",
