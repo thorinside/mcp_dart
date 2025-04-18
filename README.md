@@ -17,6 +17,7 @@ Ensure you have the correct Dart SDK version installed. See <https://dart.dev/ge
 
 - Stdio support (Server and Client)
 - SSE support (Server only for now)
+- In memory transport using dart streams
 - Tools
 - Resources
 - Prompts
