@@ -351,5 +351,109 @@ void main() {
       expect(receivedMessage, isA<JsonRpcPingRequest>());
       expect((receivedMessage as JsonRpcPingRequest).id, 9);
     });
+    
+    test('Error in onmessage handler is caught and reported', () async {
+      await serverTransport.start();
+      
+      // Set up a completer to capture the reported error
+      final errorReported = Completer<Error>();
+      
+      // Set up an onmessage handler that throws an error
+      serverTransport.onmessage = (message) {
+        throw StateError('Intentional error in onmessage handler');
+      };
+      
+      // Set up an onerror handler to capture the error
+      serverTransport.onerror = (error) {
+        if (!errorReported.isCompleted) {
+          errorReported.complete(error);
+        }
+      };
+      
+      // Send a message to trigger the error
+      sendRawJsonMessage(clientToServerController, JsonRpcPingRequest(id: 10));
+      
+      // Wait for the error to be reported
+      final reportedError = await errorReported.future.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw TimeoutException('Error not reported'),
+      );
+      
+      // Verify the error was reported with the correct message
+      expect(reportedError, isA<StateError>());
+      expect(reportedError.toString(), contains('onmessage handler'));
+    });
+    
+    test('Error in onerror handler is handled gracefully', () async {
+      await serverTransport.start();
+      
+      // Set up an onerror handler that throws another error
+      serverTransport.onerror = (error) {
+        throw StateError('Intentional error in onerror handler');
+      };
+      
+      // Send invalid JSON data to trigger an error
+      clientToServerController.add(utf8.encode('invalid json\n'));
+      
+      // Wait a moment to allow error processing
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // We can't easily assert what happens here, but the transport should remain functional
+      // and not crash. Let's send another valid message and make sure it works.
+      
+      // Reset the onerror handler so it doesn't throw again
+      serverTransport.onerror = null;
+      
+      // Set up a completer for subsequent valid message
+      final validMessageReceived = Completer<JsonRpcMessage>();
+      serverTransport.onmessage = (message) {
+        serverReceivedMessages.add(message);
+        if (!validMessageReceived.isCompleted) {
+          validMessageReceived.complete(message);
+        }
+      };
+      
+      // Send a valid message
+      sendRawJsonMessage(clientToServerController, JsonRpcPingRequest(id: 11));
+      
+      // Wait for valid message to be received, showing transport still works
+      final validMessage = await validMessageReceived.future.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw TimeoutException('Valid message not received after error'),
+      );
+      
+      // Verify message received correctly
+      expect(validMessage, isA<JsonRpcPingRequest>());
+      expect((validMessage as JsonRpcPingRequest).id, 11);
+    });
+    
+    test('Transport handles incomplete message at end of stream', () async {
+      await serverTransport.start();
+      
+      // Create a message but don't add the newline terminator
+      final message = JsonRpcPingRequest(id: 12);
+      final jsonString = jsonEncode(message.toJson()); // No newline at the end
+      
+      // Send the incomplete message
+      clientToServerController.add(utf8.encode(jsonString));
+      
+      // Wait a moment to allow processing
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // No message should be received since it's incomplete
+      expect(serverReceivedMessages.isEmpty, isTrue);
+      
+      // Now close the stream
+      await clientToServerController.close();
+      
+      // Wait for the transport to close
+      await serverCloseCompleter.future.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw TimeoutException('Transport not closed'),
+      );
+      
+      // Verify no message was extracted from the incomplete data
+      expect(serverReceivedMessages.isEmpty, isTrue);
+    });
   });
 }
