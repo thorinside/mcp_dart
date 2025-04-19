@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:mcp_dart/mcp_dart.dart';
-import 'package:mcp_dart/src/client/iostream.dart';
-import 'package:mcp_dart/src/server/iostream.dart';
+import 'package:mcp_dart/src/shared/inmemory.dart';
 import 'server_iostream.dart';
 /// Creates and returns a client with custom stream transport connected to a server.
 Future<void> main() async {
@@ -19,12 +18,12 @@ Future<void> main() async {
   final clientToServerStreamController = StreamController<List<int>>();
   
   // Create transport using custom streams
-  final clientTransport = IOStreamClientTransport(
+  final clientTransport = InMemoryTransport(
     stream: serverToClientStreamController.stream,
     sink: clientToServerStreamController.sink,
   );
 
-  final serverTransport = IOStreamServerTransport(
+  final serverTransport = InMemoryTransport(
     stream: clientToServerStreamController.stream,
     sink: serverToClientStreamController.sink,
   );
