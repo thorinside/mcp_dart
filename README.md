@@ -16,8 +16,9 @@ Ensure you have the correct Dart SDK version installed. See <https://dart.dev/ge
 ## Features
 
 - Stdio support (Server and Client)
-- SSE support (Server only for now)
-- Stream Transport using dart streams
+- StreamableHTTP support (Server and Client)
+- SSE support (Server only) - Deprecated
+- Stream Transport using dart streams (Server and Client in shared process)
 - Tools
 - Resources
 - Prompts
