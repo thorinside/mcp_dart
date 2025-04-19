@@ -1,15 +1,14 @@
 import 'dart:async';
 
 import 'package:mcp_dart/mcp_dart.dart';
-import 'package:mcp_dart/src/shared/inmemory.dart';
 import 'server_iostream.dart';
 
 class PipeTransport {
   /// The client end of the pipe transport
-  late final InMemoryTransport client;
+  late final IOStreamTransport client;
 
   /// The server end of the pipe transport
-  late final InMemoryTransport server;
+  late final IOStreamTransport server;
 
   /// Creates a new pipe transport with in-memory streams.
   PipeTransport() {
@@ -17,13 +16,13 @@ class PipeTransport {
     final serverToClientController = StreamController<List<int>>();
 
     // Client reads from server's output, writes to server's input
-    client = InMemoryTransport(
+    client = IOStreamTransport(
       stream: serverToClientController.stream,
       sink: clientToServerController.sink,
     );
 
     // Server reads from client's output, writes to client's input
-    server = InMemoryTransport(
+    server = IOStreamTransport(
       stream: clientToServerController.stream,
       sink: serverToClientController.sink,
     );

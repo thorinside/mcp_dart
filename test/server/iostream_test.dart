@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:mcp_dart/src/shared/inmemory.dart';
+import 'package:mcp_dart/src/shared/iostream.dart';
 import 'package:mcp_dart/src/types.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('InMemory Transport Tests', () {
+  group('IOStream Transport Tests', () {
     // Stream controllers for direct communication
     late StreamController<List<int>> clientToServerController;
     late StreamController<List<int>> serverToClientController;
     
     // Client and server transports
-    late InMemoryTransport clientTransport;
-    late InMemoryTransport serverTransport;
+    late IOStreamTransport clientTransport;
+    late IOStreamTransport serverTransport;
     
     // Test state management
     late Completer<void> serverCloseCompleter;
@@ -29,12 +29,12 @@ void main() {
       serverToClientController = StreamController<List<int>>.broadcast();
       
       // Set up transports
-      clientTransport = InMemoryTransport(
+      clientTransport = IOStreamTransport(
         stream: serverToClientController.stream,
         sink: clientToServerController.sink,
       );
       
-      serverTransport = InMemoryTransport(
+      serverTransport = IOStreamTransport(
         stream: clientToServerController.stream,
         sink: serverToClientController.sink,
       );

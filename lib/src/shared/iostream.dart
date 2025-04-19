@@ -7,7 +7,7 @@ import 'package:mcp_dart/src/shared/transport.dart';
 import 'package:mcp_dart/src/types.dart';
 
 /// Transport implementation that uses standard I/O for communication.
-class InMemoryTransport implements Transport {
+class IOStreamTransport implements Transport {
   /// The input stream to read from.
   final Stream<List<int>> stream;
 
@@ -46,7 +46,7 @@ class InMemoryTransport implements Transport {
   ///
   /// [stream] is the stream to read from.
   /// [sink] is the sink to write to.
-  InMemoryTransport({
+  IOStreamTransport({
     required this.stream,
     required this.sink,
   });

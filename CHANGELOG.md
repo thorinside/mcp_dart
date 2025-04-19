@@ -1,6 +1,6 @@
 ## 0.3.7
 
-- Add inmemory transport to connect a client and server via dart streams in a single application
+- Add IOStreamTransport to connect a client and server via dart streams in a single application
 
 ## 0.3.6
 
