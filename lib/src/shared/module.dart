@@ -4,4 +4,4 @@
 /// MCP protocol utilities, and standard I/O-based server communication.
 library;
 
-export 'inmemory.dart'; // Core server implementation for handling MCP logic.
+export 'iostream.dart'; // Core server implementation for handling MCP logic.
