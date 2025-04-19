@@ -59,7 +59,7 @@ class IOStreamTransport implements Transport {
   Future<void> start() async {
     if (_started) {
       throw StateError(
-        "InMemoryTransport already started! Note that server/client .connect() calls start() automatically.",
+        "IOStreamTransport already started! Note that server/client .connect() calls start() automatically.",
       );
     }
     _started = true;
@@ -78,7 +78,7 @@ class IOStreamTransport implements Transport {
     } catch (error, stackTrace) {
       _started = false; // Reset state
       final startError = StateError(
-        "Failed to start InMemoryTransport: $error\n$stackTrace",
+        "Failed to start IOStreamTransport: $error\n$stackTrace",
       );
       try {
         onerror?.call(startError);
@@ -98,7 +98,7 @@ class IOStreamTransport implements Transport {
 
   /// Internal handler for when the input stream closes
   void _onStreamDone() {
-    print("InMemoryTransport: Input stream closed.");
+    print("IOStreamTransport: Input stream closed.");
     close(); // Close transport when input ends
   }
 
@@ -137,7 +137,7 @@ class IOStreamTransport implements Transport {
           print("Error in onerror handler: $e");
         }
         print(
-          "InMemoryTransport: Error processing read buffer: $parseError. Skipping data.",
+          "IOStreamTransport: Error processing read buffer: $parseError. Skipping data.",
         );
         break; // Stop processing buffer on error
       }
@@ -149,7 +149,7 @@ class IOStreamTransport implements Transport {
   Future<void> close() async {
     if (_closed || !_started) return; // Already closed or never started
 
-    print("InMemoryTransport: Closing transport...");
+    print("IOStreamTransport: Closing transport...");
 
     // Mark as closing immediately to prevent further sends/starts
     _started = false;
@@ -167,7 +167,7 @@ class IOStreamTransport implements Transport {
     } catch (e) {
       print("Error in onclose handler: $e");
     }
-    print("InMemoryTransport: Transport closed.");
+    print("IOStreamTransport: Transport closed.");
   }
 
   /// Sends a message to the output stream.
@@ -177,7 +177,7 @@ class IOStreamTransport implements Transport {
   Future<void> send(JsonRpcMessage message) async {
     if (!_started || _closed) {
       throw StateError(
-        "Cannot send message: InMemoryTransport is not running or is closed.",
+        "Cannot send message: IOStreamTransport is not running or is closed.",
       );
     }
 
@@ -186,7 +186,7 @@ class IOStreamTransport implements Transport {
       sink.add(utf8.encode(jsonString));
       // No need to flush as StreamSink should handle this
     } catch (error, stackTrace) {
-      print("InMemoryTransport: Error writing to output stream: $error");
+      print("IOStreamTransport: Error writing to output stream: $error");
       final Error sendError = (error is Error)
           ? error
           : StateError("Output stream write error: $error\n$stackTrace");
