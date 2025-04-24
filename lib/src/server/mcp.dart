@@ -46,7 +46,6 @@ class PromptArgumentDefinition {
 typedef ResourceMetadata = ({
   String? description,
   String? mimeType,
-  Map<String, dynamic> additionalProperties,
 });
 
 typedef ListResourcesCallback = FutureOr<ListResourcesResult> Function(
@@ -83,17 +82,23 @@ class ResourceTemplateRegistration {
 class _RegisteredTool {
   final String? description;
   final Map<String, dynamic>? inputSchemaProperties;
+  final ToolAnnotations? annotations;
   final ToolCallback callback;
 
   const _RegisteredTool({
     this.description,
     this.inputSchemaProperties,
+    this.annotations,
     required this.callback,
   });
 
   Tool toTool(String name) {
     final schema = ToolInputSchema(properties: inputSchemaProperties);
-    return Tool(name: name, description: description, inputSchema: schema);
+    return Tool(
+        name: name,
+        description: description,
+        inputSchema: schema,
+        annotations: annotations);
   }
 }
 
@@ -137,7 +142,6 @@ class _RegisteredResource {
       name: name,
       description: metadata?.description,
       mimeType: metadata?.mimeType,
-      additionalProperties: metadata?.additionalProperties ?? const {},
     );
   }
 }
@@ -159,7 +163,6 @@ class _RegisteredResourceTemplate {
       name: name,
       description: metadata?.description,
       mimeType: metadata?.mimeType,
-      additionalProperties: metadata?.additionalProperties ?? const {},
     );
   }
 }
@@ -347,10 +350,6 @@ class McpServer {
                     name: r.name,
                     description: r.description ?? t.metadata?.description,
                     mimeType: r.mimeType ?? t.metadata?.mimeType,
-                    additionalProperties: {
-                      ...?t.metadata?.additionalProperties,
-                      ...r.additionalProperties,
-                    },
                   ),
                 )
                 .toList();
@@ -562,6 +561,7 @@ class McpServer {
     String name, {
     String? description,
     Map<String, dynamic>? inputSchemaProperties,
+    ToolAnnotations? annotations,
     required ToolCallback callback,
   }) {
     if (_registeredTools.containsKey(name)) {
@@ -570,6 +570,7 @@ class McpServer {
     _registeredTools[name] = _RegisteredTool(
       description: description,
       inputSchemaProperties: inputSchemaProperties,
+      annotations: annotations,
       callback: callback,
     );
     _ensureToolHandlersInitialized();

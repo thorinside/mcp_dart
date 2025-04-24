@@ -488,7 +488,6 @@ abstract class Protocol {
       final progressData = Progress(
         progress: params.progress,
         total: params.total,
-        additionalProperties: params.additionalProperties,
       );
       progressHandler(progressData);
     } catch (e) {
