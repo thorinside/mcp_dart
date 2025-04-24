@@ -46,7 +46,6 @@ class PromptArgumentDefinition {
 typedef ResourceMetadata = ({
   String? description,
   String? mimeType,
-  Map<String, dynamic> additionalProperties,
 });
 
 typedef ListResourcesCallback = FutureOr<ListResourcesResult> Function(
@@ -137,7 +136,6 @@ class _RegisteredResource {
       name: name,
       description: metadata?.description,
       mimeType: metadata?.mimeType,
-      additionalProperties: metadata?.additionalProperties ?? const {},
     );
   }
 }
@@ -159,7 +157,6 @@ class _RegisteredResourceTemplate {
       name: name,
       description: metadata?.description,
       mimeType: metadata?.mimeType,
-      additionalProperties: metadata?.additionalProperties ?? const {},
     );
   }
 }
@@ -347,10 +344,6 @@ class McpServer {
                     name: r.name,
                     description: r.description ?? t.metadata?.description,
                     mimeType: r.mimeType ?? t.metadata?.mimeType,
-                    additionalProperties: {
-                      ...?t.metadata?.additionalProperties,
-                      ...r.additionalProperties,
-                    },
                   ),
                 )
                 .toList();

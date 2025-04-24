@@ -130,17 +130,25 @@ void main() {
       expect(deserialized.mimeType, equals('image/png'));
     });
 
+    test('AudioContent serialization and deserialization', () {
+      final content = AudioContent(data: 'base64data', mimeType: 'audio/wav');
+      final json = content.toJson();
+      expect(json['type'], equals('audio'));
+      expect(json['data'], equals('base64data'));
+      expect(json['mimeType'], equals('audio/wav'));
+
+      final deserialized = AudioContent.fromJson(json);
+      expect(deserialized.data, equals('base64data'));
+      expect(deserialized.mimeType, equals('audio/wav'));
+    });
+
     test('UnknownContent serialization and deserialization', () {
-      final content = UnknownContent(
-          type: 'unknown', additionalProperties: {'key': 'value'});
+      final content = UnknownContent(type: 'unknown');
       final json = content.toJson();
       expect(json['type'], equals('unknown'));
-      expect(json['key'], equals('value'));
 
-      final deserialized =
-          UnknownContent(type: 'unknown', additionalProperties: json);
+      final deserialized = UnknownContent(type: 'unknown');
       expect(deserialized.type, equals('unknown'));
-      expect(deserialized.additionalProperties['key'], equals('value'));
     });
   });
 

@@ -329,30 +329,21 @@ class Implementation {
   /// The version string of the implementation.
   final String version;
 
-  /// Any additional properties defined by the implementation.
-  final Map<String, dynamic> additionalProperties;
-
   const Implementation({
     required this.name,
     required this.version,
-    this.additionalProperties = const {},
   });
 
   factory Implementation.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('name')
-      ..remove('version');
     return Implementation(
       name: json['name'] as String,
       version: json['version'] as String,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'version': version,
-        ...additionalProperties,
       };
 }
 
@@ -361,25 +352,18 @@ class ClientCapabilitiesRoots {
   /// Whether the client supports `notifications/roots/list_changed`.
   final bool? listChanged;
 
-  /// Any additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ClientCapabilitiesRoots({
     this.listChanged,
-    this.additionalProperties = const {},
   });
 
   factory ClientCapabilitiesRoots.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)..remove('listChanged');
     return ClientCapabilitiesRoots(
       listChanged: json['listChanged'] as bool?,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         if (listChanged != null) 'listChanged': listChanged,
-        ...additionalProperties,
       };
 }
 
@@ -394,28 +378,19 @@ class ClientCapabilities {
   /// Present if the client supports listing roots (`roots/list`).
   final ClientCapabilitiesRoots? roots;
 
-  /// Any additional capabilities properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ClientCapabilities({
     this.experimental,
     this.sampling,
     this.roots,
-    this.additionalProperties = const {},
   });
 
   factory ClientCapabilities.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('experimental')
-      ..remove('sampling')
-      ..remove('roots');
     final rootsMap = json['roots'] as Map<String, dynamic>?;
     return ClientCapabilities(
       experimental: json['experimental'] as Map<String, dynamic>?,
       sampling: json['sampling'] as Map<String, dynamic>?,
       roots:
           rootsMap == null ? null : ClientCapabilitiesRoots.fromJson(rootsMap),
-      additionalProperties: rest,
     );
   }
 
@@ -423,7 +398,6 @@ class ClientCapabilities {
         if (experimental != null) 'experimental': experimental,
         if (sampling != null) 'sampling': sampling,
         if (roots != null) 'roots': roots!.toJson(),
-        ...additionalProperties,
       };
 }
 
@@ -492,25 +466,18 @@ class ServerCapabilitiesPrompts {
   /// Whether the server supports `notifications/prompts/list_changed`.
   final bool? listChanged;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ServerCapabilitiesPrompts({
     this.listChanged,
-    this.additionalProperties = const {},
   });
 
   factory ServerCapabilitiesPrompts.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)..remove('listChanged');
     return ServerCapabilitiesPrompts(
       listChanged: json['listChanged'] as bool?,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         if (listChanged != null) 'listChanged': listChanged,
-        ...additionalProperties,
       };
 }
 
@@ -522,30 +489,21 @@ class ServerCapabilitiesResources {
   /// Whether the server supports `notifications/resources/list_changed`.
   final bool? listChanged;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ServerCapabilitiesResources({
     this.subscribe,
     this.listChanged,
-    this.additionalProperties = const {},
   });
 
   factory ServerCapabilitiesResources.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('subscribe')
-      ..remove('listChanged');
     return ServerCapabilitiesResources(
       subscribe: json['subscribe'] as bool?,
       listChanged: json['listChanged'] as bool?,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         if (subscribe != null) 'subscribe': subscribe,
         if (listChanged != null) 'listChanged': listChanged,
-        ...additionalProperties,
       };
 }
 
@@ -554,25 +512,18 @@ class ServerCapabilitiesTools {
   /// Whether the server supports `notifications/tools/list_changed`.
   final bool? listChanged;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ServerCapabilitiesTools({
     this.listChanged,
-    this.additionalProperties = const {},
   });
 
   factory ServerCapabilitiesTools.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)..remove('listChanged');
     return ServerCapabilitiesTools(
       listChanged: json['listChanged'] as bool?,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         if (listChanged != null) 'listChanged': listChanged,
-        ...additionalProperties,
       };
 }
 
@@ -593,25 +544,15 @@ class ServerCapabilities {
   /// Present if the server offers tools (`tools/list`, `tools/call`).
   final ServerCapabilitiesTools? tools;
 
-  /// Additional capability properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ServerCapabilities({
     this.experimental,
     this.logging,
     this.prompts,
     this.resources,
     this.tools,
-    this.additionalProperties = const {},
   });
 
   factory ServerCapabilities.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('experimental')
-      ..remove('logging')
-      ..remove('prompts')
-      ..remove('resources')
-      ..remove('tools');
     final pMap = json['prompts'] as Map<String, dynamic>?;
     final rMap = json['resources'] as Map<String, dynamic>?;
     final tMap = json['tools'] as Map<String, dynamic>?;
@@ -622,7 +563,6 @@ class ServerCapabilities {
       resources:
           rMap == null ? null : ServerCapabilitiesResources.fromJson(rMap),
       tools: tMap == null ? null : ServerCapabilitiesTools.fromJson(tMap),
-      additionalProperties: rest,
     );
   }
 
@@ -632,7 +572,6 @@ class ServerCapabilities {
         if (prompts != null) 'prompts': prompts!.toJson(),
         if (resources != null) 'resources': resources!.toJson(),
         if (tools != null) 'tools': tools!.toJson(),
-        ...additionalProperties,
       };
 }
 
@@ -711,30 +650,21 @@ class Progress {
   /// Total number of items or total progress required, if known.
   final num? total;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const Progress({
     required this.progress,
     this.total,
-    this.additionalProperties = const {},
   });
 
   factory Progress.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('progress')
-      ..remove('total');
     return Progress(
       progress: json['progress'] as num,
       total: json['total'] as num?,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'progress': progress,
         if (total != null) 'total': total,
-        ...additionalProperties,
       };
 }
 
@@ -751,15 +681,10 @@ class ProgressNotificationParams implements Progress {
   @override
   final num? total;
 
-  /// Additional properties.
-  @override
-  final Map<String, dynamic> additionalProperties;
-
   const ProgressNotificationParams({
     required this.progressToken,
     required this.progress,
     this.total,
-    this.additionalProperties = const {},
   });
 
   factory ProgressNotificationParams.fromJson(Map<String, dynamic> json) {
@@ -768,7 +693,6 @@ class ProgressNotificationParams implements Progress {
       progressToken: json['progressToken'],
       progress: progressData.progress,
       total: progressData.total,
-      additionalProperties: progressData.additionalProperties,
     );
   }
 
@@ -778,7 +702,6 @@ class ProgressNotificationParams implements Progress {
         ...Progress(
           progress: progress,
           total: total,
-          additionalProperties: additionalProperties,
         ).toJson(),
       };
 }
@@ -815,30 +738,20 @@ sealed class ResourceContents {
   /// The MIME type, if known.
   final String? mimeType;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ResourceContents({
     required this.uri,
     this.mimeType,
-    this.additionalProperties = const {},
   });
 
   /// Creates a specific [ResourceContents] subclass from JSON.
   factory ResourceContents.fromJson(Map<String, dynamic> json) {
     final uri = json['uri'] as String;
     final mimeType = json['mimeType'] as String?;
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('uri')
-      ..remove('mimeType')
-      ..remove('text')
-      ..remove('blob');
     if (json.containsKey('text')) {
       return TextResourceContents(
         uri: uri,
         mimeType: mimeType,
         text: json['text'] as String,
-        additionalProperties: rest,
       );
     }
     if (json.containsKey('blob')) {
@@ -846,13 +759,11 @@ sealed class ResourceContents {
         uri: uri,
         mimeType: mimeType,
         blob: json['blob'] as String,
-        additionalProperties: rest,
       );
     }
     return UnknownResourceContents(
       uri: uri,
       mimeType: mimeType,
-      additionalProperties: json,
     );
   }
 
@@ -865,7 +776,6 @@ sealed class ResourceContents {
           BlobResourceContents c => {'blob': c.blob},
           UnknownResourceContents _ => {},
         },
-        ...additionalProperties,
       };
 }
 
@@ -877,7 +787,6 @@ class TextResourceContents extends ResourceContents {
   const TextResourceContents({
     required super.uri,
     super.mimeType,
-    super.additionalProperties,
     required this.text,
   });
 }
@@ -890,7 +799,6 @@ class BlobResourceContents extends ResourceContents {
   const BlobResourceContents({
     required super.uri,
     super.mimeType,
-    super.additionalProperties,
     required this.blob,
   });
 }
@@ -900,7 +808,6 @@ class UnknownResourceContents extends ResourceContents {
   const UnknownResourceContents({
     required super.uri,
     super.mimeType,
-    super.additionalProperties,
   });
 }
 
@@ -918,30 +825,20 @@ class Resource {
   /// The MIME type, if known.
   final String? mimeType;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const Resource({
     required this.uri,
     required this.name,
     this.description,
     this.mimeType,
-    this.additionalProperties = const {},
   });
 
   /// Creates from JSON.
   factory Resource.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('uri')
-      ..remove('name')
-      ..remove('description')
-      ..remove('mimeType');
     return Resource(
       uri: json['uri'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
       mimeType: json['mimeType'] as String?,
-      additionalProperties: rest,
     );
   }
 
@@ -951,7 +848,6 @@ class Resource {
         'name': name,
         if (description != null) 'description': description,
         if (mimeType != null) 'mimeType': mimeType,
-        ...additionalProperties,
       };
 }
 
@@ -969,31 +865,21 @@ class ResourceTemplate {
   /// The MIME type for all resources matching this template, if consistent.
   final String? mimeType;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   /// Creates a resource template description.
   const ResourceTemplate({
     required this.uriTemplate,
     required this.name,
     this.description,
     this.mimeType,
-    this.additionalProperties = const {},
   });
 
   /// Creates from JSON.
   factory ResourceTemplate.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('uriTemplate')
-      ..remove('name')
-      ..remove('description')
-      ..remove('mimeType');
     return ResourceTemplate(
       uriTemplate: json['uriTemplate'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
       mimeType: json['mimeType'] as String?,
-      additionalProperties: rest,
     );
   }
 
@@ -1003,7 +889,6 @@ class ResourceTemplate {
         'name': name,
         if (description != null) 'description': description,
         if (mimeType != null) 'mimeType': mimeType,
-        ...additionalProperties,
       };
 }
 
@@ -1372,26 +1257,17 @@ class PromptArgument {
   /// Whether this argument must be provided.
   final bool? required;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const PromptArgument({
     required this.name,
     this.description,
     this.required,
-    this.additionalProperties = const {},
   });
 
   factory PromptArgument.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('name')
-      ..remove('description')
-      ..remove('required');
     return PromptArgument(
       name: json['name'] as String,
       description: json['description'] as String?,
       required: json['required'] as bool?,
-      additionalProperties: rest,
     );
   }
 
@@ -1399,7 +1275,6 @@ class PromptArgument {
         'name': name,
         if (description != null) 'description': description,
         if (required != null) 'required': required,
-        ...additionalProperties,
       };
 }
 
@@ -1414,28 +1289,19 @@ class Prompt {
   /// A list of arguments for templating the prompt.
   final List<PromptArgument>? arguments;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const Prompt({
     required this.name,
     this.description,
     this.arguments,
-    this.additionalProperties = const {},
   });
 
   factory Prompt.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('name')
-      ..remove('description')
-      ..remove('arguments');
     return Prompt(
       name: json['name'] as String,
       description: json['description'] as String?,
       arguments: (json['arguments'] as List<dynamic>?)
           ?.map((a) => PromptArgument.fromJson(a as Map<String, dynamic>))
           .toList(),
-      additionalProperties: rest,
     );
   }
 
@@ -1444,7 +1310,6 @@ class Prompt {
         if (description != null) 'description': description,
         if (arguments != null)
           'arguments': arguments!.map((a) => a.toJson()).toList(),
-        ...additionalProperties,
       };
 }
 
@@ -1573,18 +1438,18 @@ sealed class Content {
   /// The type of the content part.
   final String type;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
-  const Content({required this.type, this.additionalProperties = const {}});
+  const Content({
+    required this.type,
+  });
 
   factory Content.fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String?;
     return switch (type) {
       'text' => TextContent.fromJson(json),
       'image' => ImageContent.fromJson(json),
+      'audio' => AudioContent.fromJson(json),
       'resource' => EmbeddedResource.fromJson(json),
-      _ => UnknownContent(type: type ?? 'unknown', additionalProperties: json),
+      _ => UnknownContent(type: type ?? 'unknown'),
     };
   }
 
@@ -1593,10 +1458,10 @@ sealed class Content {
         ...switch (this) {
           TextContent c => {'text': c.text},
           ImageContent c => {'data': c.data, 'mimeType': c.mimeType},
+          AudioContent c => {'data': c.data, 'mimeType': c.mimeType},
           EmbeddedResource c => {'resource': c.resource.toJson()},
           UnknownContent _ => {},
         },
-        ...additionalProperties,
       };
 }
 
@@ -1605,16 +1470,11 @@ class TextContent extends Content {
   /// The text string.
   final String text;
 
-  const TextContent({required this.text, super.additionalProperties})
-      : super(type: 'text');
+  const TextContent({required this.text}) : super(type: 'text');
 
   factory TextContent.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('type')
-      ..remove('text');
     return TextContent(
       text: json['text'] as String,
-      additionalProperties: rest,
     );
   }
 }
@@ -1630,18 +1490,32 @@ class ImageContent extends Content {
   const ImageContent({
     required this.data,
     required this.mimeType,
-    super.additionalProperties,
   }) : super(type: 'image');
 
   factory ImageContent.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('type')
-      ..remove('data')
-      ..remove('mimeType');
     return ImageContent(
       data: json['data'] as String,
       mimeType: json['mimeType'] as String,
-      additionalProperties: rest,
+    );
+  }
+}
+
+class AudioContent extends Content {
+  /// Base64 encoded audio data.
+  final String data;
+
+  /// MIME type of the audio (e.g., "audio/wav").
+  final String mimeType;
+
+  const AudioContent({
+    required this.data,
+    required this.mimeType,
+  }) : super(type: 'audio');
+
+  factory AudioContent.fromJson(Map<String, dynamic> json) {
+    return AudioContent(
+      data: json['data'] as String,
+      mimeType: json['mimeType'] as String,
     );
   }
 }
@@ -1651,25 +1525,20 @@ class EmbeddedResource extends Content {
   /// The embedded resource contents.
   final ResourceContents resource;
 
-  const EmbeddedResource({required this.resource, super.additionalProperties})
-      : super(type: 'resource');
+  const EmbeddedResource({required this.resource}) : super(type: 'resource');
 
   factory EmbeddedResource.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('type')
-      ..remove('resource');
     return EmbeddedResource(
       resource: ResourceContents.fromJson(
         json['resource'] as Map<String, dynamic>,
       ),
-      additionalProperties: rest,
     );
   }
 }
 
 /// Represents unknown or passthrough content types.
 class UnknownContent extends Content {
-  const UnknownContent({required super.type, super.additionalProperties});
+  const UnknownContent({required super.type});
 }
 
 /// Role associated with a prompt message (user or assistant).
@@ -1683,30 +1552,21 @@ class PromptMessage {
   /// The content of the message.
   final Content content;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const PromptMessage({
     required this.role,
     required this.content,
-    this.additionalProperties = const {},
   });
 
   factory PromptMessage.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('role')
-      ..remove('content');
     return PromptMessage(
       role: PromptMessageRole.values.byName(json['role'] as String),
       content: Content.fromJson(json['content'] as Map<String, dynamic>),
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'role': role.name,
         'content': content.toJson(),
-        ...additionalProperties,
       };
 }
 
@@ -1762,28 +1622,19 @@ class ToolInputSchema {
   /// JSON Schema properties definition.
   final Map<String, dynamic>? properties;
 
-  /// Additional JSON Schema properties (e.g., required).
-  final Map<String, dynamic> additionalProperties;
-
   const ToolInputSchema({
     this.properties,
-    this.additionalProperties = const {},
   });
 
   factory ToolInputSchema.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('type')
-      ..remove('properties');
     return ToolInputSchema(
       properties: json['properties'] as Map<String, dynamic>?,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'type': type,
         if (properties != null) 'properties': properties,
-        ...additionalProperties,
       };
 }
 
@@ -1798,28 +1649,19 @@ class Tool {
   /// JSON Schema defining the tool's input parameters.
   final ToolInputSchema inputSchema;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const Tool({
     required this.name,
     this.description,
     required this.inputSchema,
-    this.additionalProperties = const {},
   });
 
   factory Tool.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('name')
-      ..remove('description')
-      ..remove('inputSchema');
     return Tool(
       name: json['name'] as String,
       description: json['description'] as String?,
       inputSchema: ToolInputSchema.fromJson(
         json['inputSchema'] as Map<String, dynamic>,
       ),
-      additionalProperties: rest,
     );
   }
 
@@ -1827,7 +1669,6 @@ class Tool {
         'name': name,
         if (description != null) 'description': description,
         'inputSchema': inputSchema.toJson(),
-        ...additionalProperties,
       };
 }
 
@@ -2113,19 +1954,14 @@ class ModelHint {
   /// Hint for a model name.
   final String? name;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
-  const ModelHint({this.name, this.additionalProperties = const {}});
+  const ModelHint({this.name});
 
   factory ModelHint.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)..remove('name');
-    return ModelHint(name: json['name'] as String?, additionalProperties: rest);
+    return ModelHint(name: json['name'] as String?);
   }
 
   Map<String, dynamic> toJson() => {
         if (name != null) 'name': name,
-        ...additionalProperties,
       };
 }
 
@@ -2143,15 +1979,11 @@ class ModelPreferences {
   /// How much to prioritize intelligence/capabilities (0-1).
   final double? intelligencePriority;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ModelPreferences({
     this.hints,
     this.costPriority,
     this.speedPriority,
     this.intelligencePriority,
-    this.additionalProperties = const {},
   })  : assert(
             costPriority == null || (costPriority >= 0 && costPriority <= 1)),
         assert(
@@ -2163,11 +1995,6 @@ class ModelPreferences {
         );
 
   factory ModelPreferences.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('hints')
-      ..remove('costPriority')
-      ..remove('speedPriority')
-      ..remove('intelligencePriority');
     return ModelPreferences(
       hints: (json['hints'] as List<dynamic>?)
           ?.map((h) => ModelHint.fromJson(h as Map<String, dynamic>))
@@ -2175,7 +2002,6 @@ class ModelPreferences {
       costPriority: (json['costPriority'] as num?)?.toDouble(),
       speedPriority: (json['speedPriority'] as num?)?.toDouble(),
       intelligencePriority: (json['intelligencePriority'] as num?)?.toDouble(),
-      additionalProperties: rest,
     );
   }
 
@@ -2185,7 +2011,6 @@ class ModelPreferences {
         if (speedPriority != null) 'speedPriority': speedPriority,
         if (intelligencePriority != null)
           'intelligencePriority': intelligencePriority,
-        ...additionalProperties,
       };
 }
 
@@ -2256,25 +2081,17 @@ class SamplingMessage {
   /// The content of the message (text or image).
   final SamplingContent content;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const SamplingMessage({
     required this.role,
     required this.content,
-    this.additionalProperties = const {},
   });
 
   factory SamplingMessage.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('role')
-      ..remove('content');
     return SamplingMessage(
       role: SamplingMessageRole.values.byName(json['role'] as String),
       content: SamplingContent.fromJson(
         json['content'] as Map<String, dynamic>,
       ),
-      additionalProperties: rest,
     );
   }
 
@@ -2282,7 +2099,6 @@ class SamplingMessage {
   Map<String, dynamic> toJson() => {
         'role': role.name,
         'content': content.toJson(),
-        ...additionalProperties,
       };
 }
 
@@ -2458,10 +2274,9 @@ sealed class Reference {
   /// The type of reference ("ref/resource" or "ref/prompt").
   final String type;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
-  const Reference({required this.type, this.additionalProperties = const {}});
+  const Reference({
+    required this.type,
+  });
 
   factory Reference.fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String?;
@@ -2478,7 +2293,6 @@ sealed class Reference {
           ResourceReference r => {'uri': r.uri},
           PromptReference p => {'name': p.name},
         },
-        ...additionalProperties,
       };
 }
 
@@ -2486,16 +2300,11 @@ sealed class Reference {
 class ResourceReference extends Reference {
   final String uri;
 
-  const ResourceReference({required this.uri, super.additionalProperties})
-      : super(type: 'ref/resource');
+  const ResourceReference({required this.uri}) : super(type: 'ref/resource');
 
   factory ResourceReference.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('type')
-      ..remove('uri');
     return ResourceReference(
       uri: json['uri'] as String,
-      additionalProperties: rest,
     );
   }
 }
@@ -2504,16 +2313,11 @@ class ResourceReference extends Reference {
 class PromptReference extends Reference {
   final String name;
 
-  const PromptReference({required this.name, super.additionalProperties})
-      : super(type: 'ref/prompt');
+  const PromptReference({required this.name}) : super(type: 'ref/prompt');
 
   factory PromptReference.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('type')
-      ..remove('name');
     return PromptReference(
       name: json['name'] as String,
-      additionalProperties: rest,
     );
   }
 }
@@ -2526,30 +2330,21 @@ class ArgumentCompletionInfo {
   /// The current value entered by the user for completion matching.
   final String value;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const ArgumentCompletionInfo({
     required this.name,
     required this.value,
-    this.additionalProperties = const {},
   });
 
   factory ArgumentCompletionInfo.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('name')
-      ..remove('value');
     return ArgumentCompletionInfo(
       name: json['name'] as String,
       value: json['value'] as String,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'value': value,
-        ...additionalProperties,
       };
 }
 
@@ -2613,26 +2408,17 @@ class CompletionResultData {
   /// Indicates if more options exist beyond those returned.
   final bool? hasMore;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
   const CompletionResultData({
     required this.values,
     this.total,
     this.hasMore,
-    this.additionalProperties = const {},
   }) : assert(values.length <= 100);
 
   factory CompletionResultData.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('values')
-      ..remove('total')
-      ..remove('hasMore');
     return CompletionResultData(
       values: (json['values'] as List<dynamic>?)?.cast<String>() ?? [],
       total: json['total'] as int?,
       hasMore: json['hasMore'] as bool?,
-      additionalProperties: rest,
     );
   }
 
@@ -2640,7 +2426,6 @@ class CompletionResultData {
         'values': values,
         if (total != null) 'total': total,
         if (hasMore != null) 'hasMore': hasMore,
-        ...additionalProperties,
       };
 }
 
@@ -2677,27 +2462,21 @@ class Root {
   /// Optional name for the root.
   final String? name;
 
-  /// Additional properties.
-  final Map<String, dynamic> additionalProperties;
-
-  Root({required this.uri, this.name, this.additionalProperties = const {}})
-      : assert(uri.startsWith("file://"));
+  Root({
+    required this.uri,
+    this.name,
+  }) : assert(uri.startsWith("file://"));
 
   factory Root.fromJson(Map<String, dynamic> json) {
-    final rest = Map<String, dynamic>.from(json)
-      ..remove('uri')
-      ..remove('name');
     return Root(
       uri: json['uri'] as String,
       name: json['name'] as String?,
-      additionalProperties: rest,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'uri': uri,
         if (name != null) 'name': name,
-        ...additionalProperties,
       };
 }
 
