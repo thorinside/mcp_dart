@@ -1638,6 +1638,68 @@ class ToolInputSchema {
       };
 }
 
+/// Additional properties describing a Tool to clients.
+///
+/// NOTE: all properties in ToolAnnotations are **hints**.
+/// They are not guaranteed to provide a faithful description of
+/// tool behavior (including descriptive properties like `title`).
+///
+/// Clients should never make tool use decisions based on ToolAnnotations
+/// received from untrusted servers.
+class ToolAnnotations {
+  /// A human-readable title for the tool.
+  final String title;
+
+  /// If true, the tool does not modify its environment.
+  /// default: false
+  final bool readOnlyHint;
+
+  /// If true, the tool may perform destructive updates to its environment.
+  /// If false, the tool performs only additive updates.
+  /// (This property is meaningful only when `readOnlyHint == false`)
+  /// default: true
+  final bool destructiveHint;
+
+  /// If true, calling the tool repeatedly with the same arguments
+  /// will have no additional effect on the its environment.
+  /// (This property is meaningful only when `readOnlyHint == false`)
+  /// default: false
+  final bool idempotentHint;
+
+  /// If true, this tool may interact with an "open world" of external
+  /// entities. If false, the tool's domain of interaction is closed.
+  /// For example, the world of a web search tool is open, whereas that
+  /// of a memory tool is not.
+  /// Default: true
+  final bool openWorldHint;
+
+  const ToolAnnotations({
+    required this.title,
+    this.readOnlyHint = false,
+    this.destructiveHint = true,
+    this.idempotentHint = false,
+    this.openWorldHint = true,
+  });
+
+  factory ToolAnnotations.fromJson(Map<String, dynamic> json) {
+    return ToolAnnotations(
+      title: json['title'] as String,
+      readOnlyHint: json['readOnlyHint'] as bool? ?? false,
+      destructiveHint: json['destructiveHint'] as bool? ?? true,
+      idempotentHint: json['idempotentHint'] as bool? ?? false,
+      openWorldHint: json['openWorldHint'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'readOnlyHint': readOnlyHint,
+        'destructiveHint': destructiveHint,
+        'idempotentHint': idempotentHint,
+        'openWorldHint': openWorldHint,
+      };
+}
+
 /// Definition for a tool offered by the server.
 class Tool {
   /// The name of the tool.
@@ -1649,10 +1711,14 @@ class Tool {
   /// JSON Schema defining the tool's input parameters.
   final ToolInputSchema inputSchema;
 
+  /// Optional additional properties describing the tool.
+  final ToolAnnotations? annotations;
+
   const Tool({
     required this.name,
     this.description,
     required this.inputSchema,
+    this.annotations,
   });
 
   factory Tool.fromJson(Map<String, dynamic> json) {
@@ -1662,6 +1728,9 @@ class Tool {
       inputSchema: ToolInputSchema.fromJson(
         json['inputSchema'] as Map<String, dynamic>,
       ),
+      annotations: json['annotation'] != null
+          ? ToolAnnotations.fromJson(json['annotation'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -1669,6 +1738,7 @@ class Tool {
         'name': name,
         if (description != null) 'description': description,
         'inputSchema': inputSchema.toJson(),
+        if (annotations != null) 'annotation': annotations!.toJson(),
       };
 }
 
