@@ -1,4 +1,10 @@
-# 0.4.1
+## 0.4.2
+
+- Add Tool Annotation
+- Remove additionalProperties from all models
+- Add AudioContent
+
+## 0.4.1
 
 - Add IOStreamTransport to connect a client and server via dart streams in a single application
 
