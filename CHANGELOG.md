@@ -1,3 +1,8 @@
+## 0.4.3
+
+- Fix SSE behavior on StreamableHTTP
+- Added sendNotification and sendRequest to extra for server callbacks
+
 ## 0.4.2
 
 - Add Tool Annotation
