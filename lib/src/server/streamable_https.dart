@@ -153,6 +153,7 @@ class StreamableHTTPServerTransport implements Transport {
 
   /// Handles an incoming HTTP request, whether GET or POST
   Future<void> handleRequest(HttpRequest req, [dynamic parsedBody]) async {
+    req.response.bufferOutput = false;
     if (req.method == "POST") {
       await _handlePostRequest(req, parsedBody);
     } else if (req.method == "GET") {
@@ -298,6 +299,7 @@ class StreamableHTTPServerTransport implements Transport {
 
     try {
       res.write(eventData);
+      res.flush();
       return true;
     } catch (e) {
       return false;

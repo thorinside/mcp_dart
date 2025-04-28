@@ -372,7 +372,8 @@ class StreamableHttpClientTransport implements Transport {
     final broadcastStream = stream.asBroadcastStream();
 
     // Create a subscription to the stream
-    final subscription = broadcastStream.transform(utf8.decoder).listen(
+    final subscription =
+        broadcastStream.transform(utf8.decoder).asBroadcastStream().listen(
       (data) {
         buffer += data;
 
