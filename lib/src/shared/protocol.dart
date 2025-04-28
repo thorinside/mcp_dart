@@ -55,8 +55,23 @@ class RequestHandlerExtra {
   /// The session ID from the transport, if available.
   final String? sessionId;
 
+  final RequestId requestId;
+
+  final Future<void> Function(JsonRpcNotification notification)
+      sendNotification;
+
+  final Future<T> Function<T extends BaseResultData>(
+      JsonRpcRequest request,
+      T Function(Map<String, dynamic> resultJson) resultFactory,
+      RequestOptions options) sendRequest;
+
   /// Creates extra data for request handlers.
-  const RequestHandlerExtra({required this.signal, this.sessionId});
+  const RequestHandlerExtra(
+      {required this.signal,
+      this.sessionId,
+      required this.requestId,
+      required this.sendNotification,
+      required this.sendRequest});
 }
 
 /// Internal class holding timeout state for a request.
@@ -394,9 +409,14 @@ abstract class Protocol {
     _requestHandlerAbortControllers[request.id] = abortController;
 
     final extra = RequestHandlerExtra(
-      signal: abortController.signal,
-      sessionId: _transport?.sessionId,
-    );
+        signal: abortController.signal,
+        sessionId: _transport?.sessionId,
+        requestId: request.id,
+        sendNotification: (notification) => this.notification(notification),
+        sendRequest: <T extends BaseResultData>(JsonRpcRequest request,
+                T Function(Map<String, dynamic>) resultFactory,
+                RequestOptions options) =>
+            this.request<T>(request, resultFactory, options));
 
     Future.microtask(() => handler(request, extra)).then(
       (result) async {
@@ -753,13 +773,7 @@ abstract class Protocol {
       assertNotificationCapability(notificationData.method);
     }
 
-    final jsonrpcNotification = JsonRpcNotification(
-      method: notificationData.method,
-      params: notificationData.params,
-      meta: notificationData.meta,
-    );
-
-    await _transport!.send(jsonrpcNotification);
+    await _transport!.send(notificationData);
   }
 
   /// Registers a handler for requests with the given method.

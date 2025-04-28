@@ -57,18 +57,12 @@ class InMemoryEventStore implements EventStore {
   }
 }
 
-// Global server instance to be used by tool callbacks
-Server? globalServer;
-
 // Create an MCP server with implementation details
 McpServer getServer() {
   // Create the McpServer with the implementation details and options
   final server = McpServer(
     Implementation(name: 'simple-streamable-http-server', version: '1.0.0'),
   );
-
-  // Save reference to underlying server for logging access
-  globalServer = server.server;
 
   // Register a simple tool that returns a greeting
   server.tool(
@@ -107,32 +101,29 @@ McpServer getServer() {
       Future<void> sleep(int ms) => Future.delayed(Duration(milliseconds: ms));
 
       // Send debug notification
-      if (globalServer != null) {
-        await globalServer!.sendLoggingMessage(LoggingMessageNotificationParams(
-          level: LoggingLevel.debug,
-          data: 'Starting multi-greet for $name',
-        ));
-      }
+      await extra?.sendNotification(JsonRpcLoggingMessageNotification(
+          logParams: LoggingMessageNotificationParams(
+        level: LoggingLevel.debug,
+        data: 'Starting multi-greet for $name',
+      )));
 
       await sleep(1000); // Wait 1 second before first greeting
 
       // Send first info notification
-      if (globalServer != null) {
-        await globalServer!.sendLoggingMessage(LoggingMessageNotificationParams(
-          level: LoggingLevel.info,
-          data: 'Sending first greeting to $name',
-        ));
-      }
+      await extra?.sendNotification(JsonRpcLoggingMessageNotification(
+          logParams: LoggingMessageNotificationParams(
+        level: LoggingLevel.info,
+        data: 'Sending first greeting to $name',
+      )));
 
       await sleep(1000); // Wait another second before second greeting
 
       // Send second info notification
-      if (globalServer != null) {
-        await globalServer!.sendLoggingMessage(LoggingMessageNotificationParams(
-          level: LoggingLevel.info,
-          data: 'Sending second greeting to $name',
-        ));
-      }
+      await extra?.sendNotification(JsonRpcLoggingMessageNotification(
+          logParams: LoggingMessageNotificationParams(
+        level: LoggingLevel.info,
+        data: 'Sending second greeting to $name',
+      )));
 
       return CallToolResult(
         content: [
@@ -196,14 +187,12 @@ McpServer getServer() {
       while (count == 0 || counter < count) {
         counter++;
         try {
-          if (globalServer != null) {
-            await globalServer!
-                .sendLoggingMessage(LoggingMessageNotificationParams(
-              level: LoggingLevel.info,
-              data:
-                  'Periodic notification #$counter at ${DateTime.now().toIso8601String()}',
-            ));
-          }
+          await extra?.sendNotification(JsonRpcLoggingMessageNotification(
+              logParams: LoggingMessageNotificationParams(
+            level: LoggingLevel.info,
+            data:
+                'Periodic notification #$counter at ${DateTime.now().toIso8601String()}',
+          )));
         } catch (error) {
           print('Error sending notification: $error');
         }
