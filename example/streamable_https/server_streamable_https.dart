@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:mcp_dart/mcp_dart.dart';
-import 'package:mcp_dart/src/shared/protocol.dart';
 
 // Add a custom extension to access the server from the RequestHandlerExtra
 extension McpRequestHandlerExtra on RequestHandlerExtra {

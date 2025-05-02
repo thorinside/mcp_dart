@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:mcp_dart/mcp_dart.dart';
-import 'package:mcp_dart/src/shared/protocol.dart' show RequestOptions;
 
 // Global client and transport for interactive commands
 Client? client;
