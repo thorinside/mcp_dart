@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    ".eslintrc.js": "javascript",
+    "*.jsx": "javascriptreact",
+    "__locale": "cpp",
+    "locale": "cpp",
+    "array": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "vector": "cpp"
+  }
+}
