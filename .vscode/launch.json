@@ -8,14 +8,14 @@
       "name": "server_simple_streamable_https",
       "type": "dart",
       "request": "launch",
-      "program": "example/server_simple_streamable_https.dart",
+      "program": "example/streamable_https/server_streamable_https.dart",
       "console": "terminal"
     },
     {
       "name": "client_streamable_https",
       "type": "dart",
       "request": "launch",
-      "program": "example/client_streamable_https.dart",
+      "program": "example/streamable_https/client_streamable_https.dart",
       "console": "terminal"
     },
     {
