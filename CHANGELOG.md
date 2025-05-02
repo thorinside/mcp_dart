@@ -1,3 +1,7 @@
+## 0.5.0
+
+- Protocol version 2025-03-26
+
 ## 0.4.3
 
 - Fix SSE behavior on StreamableHTTP

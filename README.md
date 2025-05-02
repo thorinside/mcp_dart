@@ -25,6 +25,12 @@ Ensure you have the correct Dart SDK version installed. See <https://dart.dev/ge
 - Sampling
 - Roots
 
+## Model Context Protocol Version
+
+The current version of the protocol is `2025-03-26`. This library is designed to be compatible with this version, and any future updates will be made to ensure continued compatibility.
+
+It's also backward compatible with the previous version `2024-11-05` and `2024-10-07`.
+
 ## Getting started
 
 Below code is the simplest way to start the MCP server.

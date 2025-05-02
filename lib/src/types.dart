@@ -1,10 +1,14 @@
 import 'dart:convert';
 
 /// The latest version of the Model Context Protocol supported.
-const latestProtocolVersion = "2024-11-05";
+const latestProtocolVersion = "2025-03-26";
 
 /// List of supported Model Context Protocol versions.
-const supportedProtocolVersions = [latestProtocolVersion, "2024-10-07"];
+const supportedProtocolVersions = [
+  latestProtocolVersion,
+  "2024-11-05",
+  "2024-10-07"
+];
 
 /// JSON-RPC protocol version string.
 const jsonRpcVersion = "2.0";
