@@ -1642,6 +1642,30 @@ class ToolInputSchema {
       };
 }
 
+/// Describes the output schema for a tool, based on JSON Schema.
+class ToolOutputSchema {
+  /// Must be "object".
+  final String type = "object";
+
+  /// JSON Schema properties definition.
+  final Map<String, dynamic>? properties;
+
+  const ToolOutputSchema({
+    this.properties,
+  });
+
+  factory ToolOutputSchema.fromJson(Map<String, dynamic> json) {
+    return ToolOutputSchema(
+      properties: json['properties'] as Map<String, dynamic>?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'type': type,
+        if (properties != null) 'properties': properties,
+      };
+}
+
 /// Additional properties describing a Tool to clients.
 ///
 /// NOTE: all properties in ToolAnnotations are **hints**.
@@ -1715,6 +1739,9 @@ class Tool {
   /// JSON Schema defining the tool's input parameters.
   final ToolInputSchema inputSchema;
 
+  /// JSON Schema defining the tool's output parameters.
+  final ToolOutputSchema? outputSchema;
+
   /// Optional additional properties describing the tool.
   final ToolAnnotations? annotations;
 
@@ -1722,6 +1749,7 @@ class Tool {
     required this.name,
     this.description,
     required this.inputSchema,
+    this.outputSchema,
     this.annotations,
   });
 
@@ -1732,6 +1760,11 @@ class Tool {
       inputSchema: ToolInputSchema.fromJson(
         json['inputSchema'] as Map<String, dynamic>,
       ),
+      outputSchema: json['outputSchema'] != null
+          ? ToolOutputSchema.fromJson(
+              json['outputSchema'] as Map<String, dynamic>,
+            )
+          : null,
       annotations: json['annotation'] != null
           ? ToolAnnotations.fromJson(json['annotation'] as Map<String, dynamic>)
           : null,
@@ -1868,6 +1901,9 @@ class CallToolResult implements BaseResultData {
   /// The content returned by the tool.
   final List<Content> content;
 
+  /// The structured content returned by the tool.
+  final Map<String, dynamic> structuredContent;
+
   /// Indicates if the tool call resulted in an error condition. Defaults to false.
   final bool? isError;
 
@@ -1875,7 +1911,13 @@ class CallToolResult implements BaseResultData {
   @override
   final Map<String, dynamic>? meta;
 
-  const CallToolResult({required this.content, this.isError, this.meta});
+  CallToolResult.fromContent({required this.content, this.isError, this.meta})
+      : structuredContent = {};
+
+  CallToolResult.fromStructuredContent(
+      {required this.structuredContent, this.meta})
+      : content = [],
+        isError = null;
 
   factory CallToolResult.fromJson(Map<String, dynamic> json) {
     final meta = json['_meta'] as Map<String, dynamic>?;
@@ -1885,23 +1927,46 @@ class CallToolResult implements BaseResultData {
       List<Content> mappedContent = (toolResult is String)
           ? [TextContent(text: toolResult)]
           : [TextContent(text: jsonEncode(toolResult))];
-      return CallToolResult(content: mappedContent, isError: isErr, meta: meta);
+      return CallToolResult.fromContent(
+          content: mappedContent, isError: isErr, meta: meta);
+    } else {
+      // Structured?
+      if (json.containsKey('structuredContent')) {
+        return CallToolResult.fromStructuredContent(
+          structuredContent: json['structuredContent'] as Map<String, dynamic>,
+          meta: meta,
+        );
+      } else {
+        // Unstructured
+        return CallToolResult.fromContent(
+          content: (json['content'] as List<dynamic>?)
+                  ?.map((c) => Content.fromJson(c as Map<String, dynamic>))
+                  .toList() ??
+              [],
+          isError: json['isError'] as bool? ?? false,
+          meta: meta,
+        );
+      }
     }
-    return CallToolResult(
-      content: (json['content'] as List<dynamic>?)
-              ?.map((c) => Content.fromJson(c as Map<String, dynamic>))
-              .toList() ??
-          [],
-      isError: json['isError'] as bool? ?? false,
-      meta: meta,
-    );
   }
 
   @override
-  Map<String, dynamic> toJson() => {
-        'content': content.map((c) => c.toJson()).toList(),
-        if (isError == true) 'isError': true,
-      };
+  Map<String, dynamic> toJson() {
+    // Create the map to return
+    final Map<String, dynamic> result = {};
+
+    // Output can only be structured or unstructured but not both.
+
+    if (structuredContent.isNotEmpty) {
+      // Structured?
+      result['structuredContent'] = structuredContent;
+    } else {
+      // Unstructured
+      result['content'] = content.map((c) => c.toJson()).toList();
+      if (isError == true) result['isError'] = true;
+    }
+    return result;
+  }
 }
 
 /// Notification from server indicating the list of available tools has changed.
