@@ -1775,6 +1775,7 @@ class Tool {
         'name': name,
         if (description != null) 'description': description,
         'inputSchema': inputSchema.toJson(),
+        if (outputSchema != null) 'outputSchema': outputSchema!.toJson(),
         if (annotations != null) 'annotation': annotations!.toJson(),
       };
 }
@@ -1915,8 +1916,10 @@ class CallToolResult implements BaseResultData {
       : structuredContent = {};
 
   CallToolResult.fromStructuredContent(
-      {required this.structuredContent, this.meta})
-      : content = [],
+      {required this.structuredContent,
+      List<Content>? unstructuredFallback,
+      this.meta})
+      : content = unstructuredFallback ?? [],
         isError = null;
 
   factory CallToolResult.fromJson(Map<String, dynamic> json) {
@@ -1934,6 +1937,9 @@ class CallToolResult implements BaseResultData {
       if (json.containsKey('structuredContent')) {
         return CallToolResult.fromStructuredContent(
           structuredContent: json['structuredContent'] as Map<String, dynamic>,
+          unstructuredFallback: (json['content'] as List<dynamic>?)
+              ?.map((c) => Content.fromJson(c as Map<String, dynamic>))
+              .toList(),
           meta: meta,
         );
       } else {
@@ -1955,14 +1961,16 @@ class CallToolResult implements BaseResultData {
     // Create the map to return
     final Map<String, dynamic> result = {};
 
-    // Output can only be structured or unstructured but not both.
+    // Content may optionally be included even if structured based on the unstructuredCompatibility flag.
+    result['content'] = content.map((c) => c.toJson()).toList();
 
+    // Structured or unstructured?
+    // Error can only be included if unstructured.
     if (structuredContent.isNotEmpty) {
       // Structured?
       result['structuredContent'] = structuredContent;
     } else {
       // Unstructured
-      result['content'] = content.map((c) => c.toJson()).toList();
       if (isError == true) result['isError'] = true;
     }
     return result;
