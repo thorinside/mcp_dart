@@ -415,6 +415,28 @@ void main() {
           equals('tools/call'));
     });
 
+    test('callTool sends tool call request with structured output', () async {
+      transport.mockInitializeResponse = InitializeResult(
+        protocolVersion: latestProtocolVersion,
+        capabilities: mockServerCapabilities,
+        serverInfo: Implementation(name: 'TestServer', version: '2.0.0'),
+      );
+      await client.connect(transport);
+
+      transport.clearSentMessages();
+
+      final params = CallToolRequestParams(name: 'test-tool-structured');
+      final result = await client.callTool(params);
+
+      // Verify a callTool request was sent
+      expect(transport.sentMessages.length, equals(1));
+      expect((transport.sentMessages.first as JsonRpcRequest).method,
+          equals('tools/call'));
+
+      // Verify the result contains structured output
+      expect(result.structuredContent, isNotNull);
+    });
+
     test('listTools sends list tools request', () async {
       transport.mockInitializeResponse = InitializeResult(
         protocolVersion: latestProtocolVersion,
@@ -559,7 +581,13 @@ class MockTransport extends Transport {
       }
     } else if (message is JsonRpcRequest && message.method == 'tools/list') {
       if (onmessage != null) {
-        final tools = [Tool(name: "test-tool", inputSchema: ToolInputSchema())];
+        final tools = [
+          Tool(name: "test-tool", inputSchema: ToolInputSchema()),
+          Tool(
+              name: "test-tool-structured",
+              inputSchema: ToolInputSchema(),
+              outputSchema: ToolOutputSchema(properties: {'output': 'string'})),
+        ];
         onmessage!(JsonRpcResponse(
           id: message.id,
           result: ListToolsResult(tools: tools).toJson(),

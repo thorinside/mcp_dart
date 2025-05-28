@@ -1912,6 +1912,11 @@ class CallToolResult implements BaseResultData {
   @override
   final Map<String, dynamic>? meta;
 
+  @Deprecated(
+      'This constructor is replaced by the fromContent factory constructor and may be removed in a future version.')
+  CallToolResult({required this.content, this.isError, this.meta})
+      : structuredContent = {};
+
   CallToolResult.fromContent({required this.content, this.isError, this.meta})
       : structuredContent = {};
 
