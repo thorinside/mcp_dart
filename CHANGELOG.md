@@ -1,3 +1,7 @@
+## 0.5.1
+
+- Add support for OutputScheme (<https://modelcontextprotocol.io/specification/draft/server/tools#output-schema>)
+
 ## 0.5.0
 
 - Protocol version 2025-03-26
