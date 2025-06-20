@@ -1626,19 +1626,25 @@ class ToolInputSchema {
   /// JSON Schema properties definition.
   final Map<String, dynamic>? properties;
 
+  /// List of required property names.
+  final List<String>? required;
+
   const ToolInputSchema({
     this.properties,
+    this.required,
   });
 
   factory ToolInputSchema.fromJson(Map<String, dynamic> json) {
     return ToolInputSchema(
       properties: json['properties'] as Map<String, dynamic>?,
+      required: (json['required'] as List<dynamic>?)?.cast<String>(),
     );
   }
 
   Map<String, dynamic> toJson() => {
         'type': type,
         if (properties != null) 'properties': properties,
+        if (required != null && required!.isNotEmpty) 'required': required,
       };
 }
 
@@ -1650,19 +1656,25 @@ class ToolOutputSchema {
   /// JSON Schema properties definition.
   final Map<String, dynamic>? properties;
 
+  /// List of required property names.
+  final List<String>? required;
+
   const ToolOutputSchema({
     this.properties,
+    this.required,
   });
 
   factory ToolOutputSchema.fromJson(Map<String, dynamic> json) {
     return ToolOutputSchema(
       properties: json['properties'] as Map<String, dynamic>?,
+      required: (json['required'] as List<dynamic>?)?.cast<String>(),
     );
   }
 
   Map<String, dynamic> toJson() => {
         'type': type,
         if (properties != null) 'properties': properties,
+        if (required != null && required!.isNotEmpty) 'required': required,
       };
 }
 

@@ -1,3 +1,7 @@
+## 0.5.2
+
+- Preserve required fields in ToolInputSchema
+
 ## 0.5.1
 
 - Add support for OutputScheme (<https://modelcontextprotocol.io/specification/draft/server/tools#output-schema>)
