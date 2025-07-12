@@ -254,30 +254,6 @@ class StreamableHTTPServerTransport implements Transport {
     });
   }
 
-  /// Sets up a periodic heartbeat to keep the SSE connection alive
-  void _setupHeartbeat(HttpResponse response, String streamId) {
-    final heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      if (_streamMapping[streamId] == response) {
-        try {
-          // SSE comments are used for keep-alive messages
-          response.write(': keep-alive\n\n');
-          response.flush();
-        } catch (e) {
-          // Connection is likely closed, cancel the timer
-          timer.cancel();
-        }
-      } else {
-        // The stream has been replaced or removed, cancel the timer
-        timer.cancel();
-      }
-    });
-
-    // When the response is closed, cancel the timer
-    response.done.then((_) {
-      heartbeatTimer.cancel();
-    });
-  }
-
   /// Replays events that would have been sent after the specified event ID
   /// Only used when resumability is enabled
   Future<void> _replayEvents(String lastEventId, HttpResponse res) async {
@@ -676,7 +652,7 @@ class StreamableHTTPServerTransport implements Transport {
     onclose?.call();
   }
 
-  @override
+    @override
   Future<void> send(JsonRpcMessage message, {dynamic relatedRequestId}) async {
     dynamic requestId = relatedRequestId;
     if (_isJsonRpcResponse(message) || _isJsonRpcError(message)) {
@@ -722,71 +698,70 @@ class StreamableHTTPServerTransport implements Transport {
 
     final response = _streamMapping[streamId];
 
-    if (!_enableJsonResponse) {
-      // For SSE responses, generate event ID if event store is provided
-      String? eventId;
-
-      if (_eventStore != null) {
-        eventId = await _eventStore!.storeEvent(streamId, message);
-      }
-
-      if (response != null) {
-        // Write the event to the response stream
-        _writeSSEEvent(response, message, eventId);
-      }
-    }
-
     if (_isJsonRpcResponse(message)) {
-      _requestResponseMap[requestId] = message;
-      final relatedIds = _requestToStreamMapping.entries
-          .where((entry) => _streamMapping[entry.value] == response)
-          .map((entry) => entry.key)
-          .toList();
-
-      // Check if we have responses for all requests using this connection
-      final allResponsesReady =
-          relatedIds.every((id) => _requestResponseMap.containsKey(id));
-
-      if (allResponsesReady) {
-        if (response == null) {
-          throw StateError(
-              "No connection established for request ID: $requestId");
+      if (!_enableJsonResponse) {
+        // For SSE, send immediately and clean up
+        if (response != null) {
+          String? eventId;
+          if (_eventStore != null) {
+            eventId = await _eventStore!.storeEvent(streamId, message);
+          }
+          _writeSSEEvent(response, message, eventId);
         }
+        _requestToStreamMapping.remove(requestId);
+      } else {
+        // For JSON, buffer until all responses are ready
+        _requestResponseMap[requestId] = message;
+        final relatedIds = _requestToStreamMapping.entries
+            .where((entry) => entry.value == streamId)
+            .map((entry) => entry.key)
+            .toList();
 
-        if (_enableJsonResponse) {
-          // All responses ready, send as JSON
-          final headers = {
-            HttpHeaders.contentTypeHeader: 'application/json',
-          };
+        final allResponsesReady =
+            relatedIds.every((id) => _requestResponseMap.containsKey(id));
 
-          if (sessionId != null) {
-            headers['mcp-session-id'] = sessionId!;
+        if (allResponsesReady) {
+          if (response != null) {
+            final responses =
+                relatedIds.map((id) => _requestResponseMap[id]!).toList();
+
+            final headers = {
+              HttpHeaders.contentTypeHeader: 'application/json',
+            };
+
+            if (sessionId != null) {
+              headers['mcp-session-id'] = sessionId!;
+            }
+
+            headers.forEach((key, value) {
+              response.headers.set(key, value);
+            });
+
+            if (responses.length == 1) {
+              response.write(jsonEncode(responses[0].toJson()));
+            } else {
+              response
+                  .write(jsonEncode(responses.map((r) => r.toJson()).toList()));
+            }
+            await response.close();
           }
 
-          final responses =
-              relatedIds.map((id) => _requestResponseMap[id]!).toList();
-
-          headers.forEach((key, value) {
-            response.headers.set(key, value);
-          });
-
-          if (responses.length == 1) {
-            response.write(jsonEncode(responses[0].toJson()));
-          } else {
-            response
-                .write(jsonEncode(responses.map((r) => r.toJson()).toList()));
+          // Clean up
+          for (final id in relatedIds) {
+            _requestResponseMap.remove(id);
+            _requestToStreamMapping.remove(id);
           }
-          await response.close();
-        } else {
-          // For SSE streams, do NOT close the stream after sending responses
-          // SSE streams should remain open for future messages
-          // Only close when the client disconnects or session is terminated
         }
-
-        // Clean up
-        for (final id in relatedIds) {
-          _requestResponseMap.remove(id);
-          _requestToStreamMapping.remove(id);
+      }
+    } else {
+      // Not a response, so just write to SSE stream if not json response
+      if (!_enableJsonResponse) {
+        if (response != null) {
+          String? eventId;
+          if (_eventStore != null) {
+            eventId = await _eventStore!.storeEvent(streamId, message);
+          }
+          _writeSSEEvent(response, message, eventId);
         }
       }
     }
