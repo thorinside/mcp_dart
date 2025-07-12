@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:mcp_dart/src/shared/uuid.dart';
 
 import '../shared/transport.dart';
@@ -241,9 +242,39 @@ class StreamableHTTPServerTransport implements Transport {
     // Assign the response to the standalone SSE stream
     _streamMapping[_standaloneSseStreamId] = req.response;
 
+    // Set up heartbeat to prevent timeouts on idle connections
+    _setupHeartbeat(req.response, _standaloneSseStreamId);
+
+    // Set up heartbeat to prevent timeouts on idle connections
+    _setupHeartbeat(req.response, _standaloneSseStreamId);
+
     // Set up close handler for client disconnects
     req.response.done.then((_) {
       _streamMapping.remove(_standaloneSseStreamId);
+    });
+  }
+
+  /// Sets up a periodic heartbeat to keep the SSE connection alive
+  void _setupHeartbeat(HttpResponse response, String streamId) {
+    final heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      if (_streamMapping[streamId] == response) {
+        try {
+          // SSE comments are used for keep-alive messages
+          response.write(': keep-alive\n\n');
+          response.flush();
+        } catch (e) {
+          // Connection is likely closed, cancel the timer
+          timer.cancel();
+        }
+      } else {
+        // The stream has been replaced or removed, cancel the timer
+        timer.cancel();
+      }
+    });
+
+    // When the response is closed, cancel the timer
+    response.done.then((_) {
+      heartbeatTimer.cancel();
     });
   }
 
@@ -503,9 +534,23 @@ class StreamableHTTPServerTransport implements Transport {
           }
         }
 
+        // Set up heartbeat for SSE streams to prevent timeouts
+        if (!_enableJsonResponse) {
+          _setupHeartbeat(req.response, streamId);
+        }
+
         // Set up close handler for client disconnects
         req.response.done.then((_) {
           _streamMapping.remove(streamId);
+          // Also clean up request mappings that point to this stream
+          final requestIds = _requestToStreamMapping.entries
+              .where((entry) => entry.value == streamId)
+              .map((entry) => entry.key)
+              .toList();
+          for (final requestId in requestIds) {
+            _requestToStreamMapping.remove(requestId);
+            _requestResponseMap.remove(requestId);
+          }
         });
 
         // Handle each message
@@ -733,8 +778,9 @@ class StreamableHTTPServerTransport implements Transport {
           }
           await response.close();
         } else {
-          // End the SSE stream
-          await response.close();
+          // For SSE streams, do NOT close the stream after sending responses
+          // SSE streams should remain open for future messages
+          // Only close when the client disconnects or session is terminated
         }
 
         // Clean up
@@ -777,5 +823,29 @@ class StreamableHTTPServerTransport implements Transport {
       return message.id;
     }
     return null;
+  }
+
+  /// Sets up a periodic heartbeat to keep the SSE connection alive
+  void _setupHeartbeat(HttpResponse response, String streamId) {
+    final heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      if (_streamMapping[streamId] == response) {
+        try {
+          // SSE comments are used for keep-alive messages
+          response.write(': keep-alive\n\n');
+          response.flush();
+        } catch (e) {
+          // Connection is likely closed, cancel the timer
+          timer.cancel();
+        }
+      } else {
+        // The stream has been replaced or removed, cancel the timer
+        timer.cancel();
+      }
+    });
+
+    // When the response is closed, cancel the timer
+    response.done.then((_) {
+      heartbeatTimer.cancel();
+    });
   }
 }
