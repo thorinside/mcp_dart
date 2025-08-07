@@ -1,3 +1,9 @@
+## 0.6.0
+
+- Add ToolInputSchema and ToolOutputSchema support in server.tool()
+- Deprecate inputSchemaProperties and outputSchemaProperties in server.tool()
+- Update examples to use ToolInputSchema and ToolOutputSchema
+
 ## 0.5.3
 
 - Support Web Client for StreamableHTTP
